@@ -1,7 +1,6 @@
 import { readFile, writeFile, mkdir } from 'fs/promises'
-import { dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { join } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_DATA_FILE = join(__dirname, 'data', 'tasks.json')
@@ -14,8 +13,9 @@ export async function readTasks() {
   try {
     const raw = await readFile(dataFile(), 'utf8')
     return JSON.parse(raw)
-  } catch {
-    return []
+  } catch (err) {
+    if (err.code === 'ENOENT') return []
+    throw err
   }
 }
 
