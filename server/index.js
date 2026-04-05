@@ -5,10 +5,10 @@ import { join, dirname } from 'path'
 import taskRoutes from './routes/tasks.js'
 
 const app = express()
-const PORT = process.env.PORT ?? 3001
+const PORT = process.env.PORT ?? 47291
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({ origin: 'http://localhost:47292' }))
 app.use(express.json())
 app.use('/api/tasks', taskRoutes)
 

@@ -16,8 +16,8 @@ npm install --prefix client
 npm run dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3001
+- Frontend: http://localhost:47292
+- Backend API: http://localhost:47291
 
 ## Production
 
@@ -26,7 +26,7 @@ npm run build
 node server/index.js
 ```
 
-Open http://localhost:3001
+Open http://localhost:47291
 
 ## Quick Input
 
