@@ -80,6 +80,22 @@ let createdId
   assert.strictEqual(status, 404, 'DELETE unknown id returns 404')
 }
 
+// PATCH whitelist — forbidden fields (id, createdAt) must be ignored
+{
+  const { body: created } = await api('POST', '/api/tasks', { title: 'Whitelist test', type: 'todo' })
+  const originalId = created.id
+  const originalCreatedAt = created.createdAt
+  const { status, body } = await api('PATCH', `/api/tasks/${originalId}`, {
+    status: 'doing',
+    id: 'hacked-id',
+    createdAt: '1970-01-01T00:00:00.000Z'
+  })
+  assert.strictEqual(status, 200, 'PATCH whitelist: returns 200')
+  assert.strictEqual(body.id, originalId, 'PATCH whitelist: id unchanged')
+  assert.strictEqual(body.createdAt, originalCreatedAt, 'PATCH whitelist: createdAt unchanged')
+  assert.strictEqual(body.status, 'doing', 'PATCH whitelist: allowed field updated')
+}
+
 await rm(tmpDir, { recursive: true })
 console.log('All route tests passed')
 process.exit(0)
