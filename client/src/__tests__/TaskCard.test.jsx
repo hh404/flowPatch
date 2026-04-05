@@ -35,7 +35,7 @@ describe('TaskCard', () => {
   it('calls onUpdate with status=doing when → Doing clicked', async () => {
     const onUpdate = vi.fn()
     render(<TaskCard task={task} onUpdate={onUpdate} onDelete={vi.fn()} />)
-    await userEvent.click(screen.getByRole('button', { name: /doing/i }))
+    await userEvent.click(screen.getByRole('button', { name: /move to doing/i }))
     expect(onUpdate).toHaveBeenCalledWith('1', { status: 'doing' })
   })
 
@@ -44,5 +44,18 @@ describe('TaskCard', () => {
     render(<TaskCard task={task} onUpdate={vi.fn()} onDelete={onDelete} />)
     await userEvent.click(screen.getByRole('button', { name: /delete/i }))
     expect(onDelete).toHaveBeenCalledWith('1')
+  })
+
+  it('shows correct actions for doing status', () => {
+    const doingTask = { ...task, status: 'doing' }
+    render(<TaskCard task={doingTask} onUpdate={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /move to done/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /move back to waiting/i })).toBeInTheDocument()
+  })
+
+  it('shows correct actions for done status', () => {
+    const doneTask = { ...task, status: 'done' }
+    render(<TaskCard task={doneTask} onUpdate={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /move back to waiting/i })).toBeInTheDocument()
   })
 })

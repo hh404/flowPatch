@@ -20,6 +20,12 @@ const STATUS_ACTIONS = {
   done: [{ label: '← Reopen', status: 'pending' }]
 }
 
+const ARIA_LABELS = {
+  'doing': 'Move to Doing',
+  'done': 'Move to Done',
+  'pending': 'Move back to Waiting'
+}
+
 export default function TaskCard({ task, onUpdate, onDelete }) {
   const colorClass = TYPE_COLORS[task.type] ?? TYPE_COLORS.todo
   const badgeClass = TYPE_BADGE[task.type] ?? TYPE_BADGE.todo
@@ -39,7 +45,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
           {(STATUS_ACTIONS[task.status] ?? []).map(({ label, status }) => (
             <button
               key={status}
-              aria-label={label}
+              aria-label={ARIA_LABELS[status] ?? label}
               onClick={() => onUpdate(task.id, { status })}
               className="text-xs px-2 py-0.5 rounded bg-white/60 hover:bg-white/90 border border-current/20 transition-colors"
             >
@@ -48,7 +54,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
           ))}
         </div>
         <button
-          aria-label="delete"
+          aria-label={`Delete ${task.title}`}
           onClick={() => onDelete(task.id)}
           className="text-xs px-1.5 py-0.5 rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
         >
