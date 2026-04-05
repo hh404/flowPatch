@@ -1,18 +1,26 @@
+import { useState } from 'react'
 import { useTasks } from './hooks/useTasks.js'
 import QuickInput from './components/QuickInput.jsx'
 import Column from './components/Column.jsx'
+import TaskModal from './components/TaskModal.jsx'
 
 const COLUMNS = [
-  { title: 'Doing', statuses: ['doing'] },
+  { title: 'Doing',   statuses: ['doing'] },
   { title: 'Waiting', statuses: ['pending'] },
-  { title: 'Done', statuses: ['done'] }
+  { title: 'Done',    statuses: ['done'] },
 ]
 
 export default function App() {
   const { tasks, loading, error, addTask, updateTask, deleteTask } = useTasks()
+  const [modal, setModal] = useState(null) // { title, type } or null
 
   if (loading) return <div className="flex h-screen items-center justify-center text-gray-400">Loading…</div>
-  if (error) return <div className="flex h-screen items-center justify-center text-red-400">Error loading tasks</div>
+  if (error)   return <div className="flex h-screen items-center justify-center text-red-400">Error loading tasks</div>
+
+  async function handleConfirm(data) {
+    setModal(null)
+    await addTask(data)
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans">
@@ -21,7 +29,7 @@ export default function App() {
         <span className="text-indigo-300 text-sm">Reality Tracker</span>
       </header>
 
-      <QuickInput onAdd={addTask} />
+      <QuickInput onOpenModal={setModal} />
 
       <main className="flex flex-1 gap-4 p-4 overflow-hidden">
         {COLUMNS.map(({ title, statuses }) => (
@@ -34,6 +42,15 @@ export default function App() {
           />
         ))}
       </main>
+
+      {modal && (
+        <TaskModal
+          initialTitle={modal.title}
+          initialType={modal.type}
+          onConfirm={handleConfirm}
+          onClose={() => setModal(null)}
+        />
+      )}
     </div>
   )
 }

@@ -2,23 +2,26 @@ import { useState } from 'react'
 import { detectType } from '../utils/detectType.js'
 
 const TYPE_COLORS = {
-  todo: 'bg-gray-200 text-gray-700',
-  waiting: 'bg-yellow-200 text-yellow-800',
+  todo:     'bg-gray-200 text-gray-700',
+  waiting:  'bg-yellow-200 text-yellow-800',
   followup: 'bg-blue-200 text-blue-800',
   'ad-hoc': 'bg-purple-200 text-purple-800',
-  shadow: 'bg-pink-200 text-pink-800'
+  shadow:   'bg-pink-200 text-pink-800',
 }
 
-export default function QuickInput({ onAdd }) {
+export default function QuickInput({ onOpenModal }) {
   const [value, setValue] = useState('')
   const type = detectType(value)
 
-  function handleKeyDown(e) {
-    if (e.key !== 'Enter') return
+  function submit() {
     const title = value.trim()
     if (!title) return
-    onAdd({ title, type })
+    onOpenModal({ title, type })
     setValue('')
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') submit()
   }
 
   return (
@@ -36,6 +39,13 @@ export default function QuickInput({ onAdd }) {
           {type}
         </span>
       )}
+      <button
+        onClick={submit}
+        className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-40"
+        disabled={!value.trim()}
+      >
+        +
+      </button>
     </div>
   )
 }
