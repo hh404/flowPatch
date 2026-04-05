@@ -9,23 +9,23 @@ const tasks = [
 
 describe('Column', () => {
   it('renders column title', () => {
-    render(<Column title="Waiting" tasks={[]} onUpdate={vi.fn()} onDelete={vi.fn()} />)
+    render(<Column title="Waiting" tasks={[]} onUpdate={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />)
     expect(screen.getByText('Waiting')).toBeInTheDocument()
   })
 
   it('renders all task cards', () => {
-    render(<Column title="All" tasks={tasks} onUpdate={vi.fn()} onDelete={vi.fn()} />)
+    render(<Column title="All" tasks={tasks} onUpdate={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />)
     expect(screen.getByText('Task A')).toBeInTheDocument()
     expect(screen.getByText('Task B')).toBeInTheDocument()
   })
 
   it('shows empty state message when no tasks', () => {
-    render(<Column title="Done" tasks={[]} onUpdate={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText(/nothing here/i)).toBeInTheDocument()
+    render(<Column title="Done" tasks={[]} onUpdate={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />)
+    expect(screen.getByText(/completed work lands here/i)).toBeInTheDocument()
   })
 
   it('shows task count in header', () => {
-    render(<Column title="Doing" tasks={tasks} onUpdate={vi.fn()} onDelete={vi.fn()} />)
+    render(<Column title="Doing" tasks={tasks} onUpdate={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />)
     expect(screen.getByText('2')).toBeInTheDocument()
   })
 })

@@ -3,12 +3,11 @@ import { mkdtemp, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
-const tmpDir = await mkdtemp(join(tmpdir(), 'flowpatch-route-'))
-process.env.DATA_FILE = join(tmpDir, 'tasks.json')
+const tmpDir = await mkdtemp(join(tmpdir(), 'flowpatch-stories-'))
+process.env.STORIES_DATA_FILE = join(tmpDir, 'stories.json')
 process.env.NODE_ENV = 'test'
 
-const { default: app } = await import('../index.js')
-const { default: taskRoutes } = await import('../routes/tasks.js')
+const { default: storyRoutes } = await import('../routes/stories.js')
 
 function createResponse() {
   const response = {
@@ -33,7 +32,7 @@ function createResponse() {
 function getHandler(method, path) {
   const normalizedMethod = method.toLowerCase()
   const routePath = path === '/' ? '/' : '/:id'
-  const layer = taskRoutes.stack.find(candidate => (
+  const layer = storyRoutes.stack.find(candidate => (
     candidate.route?.path === routePath && candidate.route.methods[normalizedMethod]
   ))
 
@@ -56,8 +55,6 @@ async function callRoute(method, path, body = {}) {
 }
 
 try {
-  assert.equal(typeof app.listen, 'function', 'server/index.js exports an app without auto-start side effects')
-
   {
     const { status, body } = await callRoute('GET', '/')
     assert.strictEqual(status, 200, 'GET returns 200')
@@ -68,74 +65,83 @@ try {
 
   {
     const { status, body } = await callRoute('POST', '/', {
-      title: 'Fix pipeline',
-      type: 'waiting',
-      note: 'build takes 1h',
-      priority: 'high',
-      remindAt: '2026-04-05T12:00:00.000Z'
+      mvp: 'Core Platform MVP',
+      title: 'FlowPatch MVP shell',
+      link: 'https://dev.azure.com/example/story-1',
+      status: 'In Progress'
     })
 
     assert.strictEqual(status, 201, 'POST returns 201')
     assert.ok(body.id, 'POST returns id')
-    assert.strictEqual(body.title, 'Fix pipeline', 'POST title')
-    assert.strictEqual(body.type, 'waiting', 'POST type')
-    assert.strictEqual(body.status, 'inbox', 'POST default status')
-    assert.strictEqual(body.priority, 'high', 'POST priority')
-    assert.strictEqual(body.note, 'build takes 1h', 'POST note')
-    assert.strictEqual(body.remindAt, '2026-04-05T12:00:00.000Z', 'POST reminder')
-    assert.strictEqual(body.remindedAt, null, 'POST reminder sent state')
+    assert.strictEqual(body.mvp, 'Core Platform MVP', 'POST mvp')
+    assert.strictEqual(body.title, 'FlowPatch MVP shell', 'POST title')
+    assert.strictEqual(body.link, 'https://dev.azure.com/example/story-1', 'POST link')
+    assert.strictEqual(body.status, 'In Progress', 'POST status')
     createdId = body.id
   }
 
   {
-    const { status } = await callRoute('POST', '/', { type: 'todo' })
-    assert.strictEqual(status, 400, 'POST without title returns 400')
+    const { status } = await callRoute('POST', '/', {
+      mvp: 'Core Platform MVP',
+      title: 'Broken story',
+      link: '',
+      status: 'Planned'
+    })
+
+    assert.strictEqual(status, 400, 'POST requires title/link/status')
   }
 
   {
     const { status, body } = await callRoute('PATCH', `/${createdId}`, {
-      status: 'waiting',
-      priority: 'low',
-      waitingOn: 'QA',
-      followUpAt: '2026-04-07',
-      remindAt: '2026-04-05T13:00:00.000Z'
+      mvp: 'Search MVP',
+      status: 'Blocked',
+      link: 'https://dev.azure.com/example/story-1-updated'
     })
 
     assert.strictEqual(status, 200, 'PATCH returns 200')
-    assert.strictEqual(body.status, 'waiting', 'PATCH updates status')
-    assert.strictEqual(body.priority, 'low', 'PATCH updates priority')
-    assert.strictEqual(body.waitingOn, 'QA', 'PATCH updates waitingOn')
-    assert.strictEqual(body.followUpAt, '2026-04-07', 'PATCH updates followUpAt')
-    assert.strictEqual(body.remindAt, '2026-04-05T13:00:00.000Z', 'PATCH updates remindAt')
-    assert.strictEqual(body.remindedAt, null, 'PATCH resets remindedAt when reminder changes')
+    assert.strictEqual(body.mvp, 'Search MVP', 'PATCH updates mvp')
+    assert.strictEqual(body.status, 'Blocked', 'PATCH updates status')
+    assert.strictEqual(body.link, 'https://dev.azure.com/example/story-1-updated', 'PATCH updates link')
   }
 
   {
-    const { status } = await callRoute('PATCH', '/unknown-id', { status: 'done' })
+    const { status } = await callRoute('PATCH', '/unknown-id', { status: 'Done' })
     assert.strictEqual(status, 404, 'PATCH unknown id returns 404')
   }
 
   {
-    const { body: created } = await callRoute('POST', '/', { title: 'Whitelist test', type: 'todo' })
-    const originalId = created.id
-    const originalCreatedAt = created.createdAt
-
-    assert.strictEqual(created.priority, 'medium', 'POST defaults priority to medium')
-
-    const { status, body } = await callRoute('PATCH', `/${originalId}`, {
-      status: 'doing',
-      id: 'hacked-id',
-      priority: 'high',
-      createdAt: '1970-01-01T00:00:00.000Z',
-      remindAt: '2026-04-05T14:00:00.000Z'
+    const { body: created } = await callRoute('POST', '/', {
+      mvp: 'Current MVP',
+      title: 'Whitelist story',
+      link: 'https://dev.azure.com/example/story-2',
+      status: 'Planned'
     })
 
-    assert.strictEqual(status, 200, 'PATCH whitelist returns 200')
+    const originalId = created.id
+    const originalCreatedAt = created.createdAt
+    const { status, body } = await callRoute('PATCH', `/${originalId}`, {
+      id: 'hacked-id',
+      createdAt: '1970-01-01T00:00:00.000Z',
+      mvp: 'Release MVP',
+      status: 'Done'
+    })
+
+    assert.strictEqual(status, 200, 'PATCH returns 200 for whitelist test')
     assert.strictEqual(body.id, originalId, 'PATCH ignores id')
     assert.strictEqual(body.createdAt, originalCreatedAt, 'PATCH ignores createdAt')
-    assert.strictEqual(body.priority, 'high', 'PATCH updates priority')
-    assert.strictEqual(body.status, 'doing', 'PATCH still updates allowed fields')
-    assert.strictEqual(body.remindAt, '2026-04-05T14:00:00.000Z', 'PATCH updates reminder')
+    assert.strictEqual(body.mvp, 'Release MVP', 'PATCH updates allowed mvp field')
+    assert.strictEqual(body.status, 'Done', 'PATCH updates allowed fields')
+  }
+
+  {
+    const { status, body } = await callRoute('POST', '/', {
+      title: 'Legacy story',
+      link: 'https://dev.azure.com/example/story-3',
+      status: 'New'
+    })
+
+    assert.strictEqual(status, 201, 'POST without mvp returns 201')
+    assert.strictEqual(body.mvp, 'Current MVP', 'POST defaults mvp')
   }
 
   {
@@ -143,7 +149,7 @@ try {
     assert.strictEqual(status, 204, 'DELETE returns 204')
 
     const { body: all } = await callRoute('GET', '/')
-    assert.ok(!all.find(task => task.id === createdId), 'DELETE removes task')
+    assert.ok(!all.find(story => story.id === createdId), 'DELETE removes story')
   }
 
   {
@@ -151,7 +157,7 @@ try {
     assert.strictEqual(status, 404, 'DELETE unknown id returns 404')
   }
 
-  console.log('All route tests passed')
+  console.log('All story route tests passed')
 } finally {
   await rm(tmpDir, { recursive: true, force: true })
 }

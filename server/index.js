@@ -3,22 +3,45 @@ import cors from 'cors'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
 import taskRoutes from './routes/tasks.js'
+import storyRoutes from './routes/stories.js'
 
-const app = express()
-const PORT = process.env.PORT ?? 47291
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const PORT = process.env.PORT ?? 47291
+const ENTRY_FILE = fileURLToPath(import.meta.url)
 
-app.use(cors({ origin: 'http://localhost:47292' }))
-app.use(express.json())
-app.use('/api/tasks', taskRoutes)
+export function createApp() {
+  const app = express()
 
-// Serve built frontend in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = join(__dirname, '../client/dist')
-  app.use(express.static(distPath))
-  app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')))
+  app.use(cors({ origin: 'http://localhost:47292' }))
+  app.use(express.json())
+  app.use('/api/tasks', taskRoutes)
+  app.use('/api/stories', storyRoutes)
+
+  // Serve built frontend in production
+  if (process.env.NODE_ENV === 'production') {
+    const distPath = join(__dirname, '../client/dist')
+    app.use(express.static(distPath))
+    app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')))
+  }
+
+  return app
 }
 
-app.listen(PORT, () => console.log(`FlowPatch running on http://localhost:${PORT}`))
+const app = createApp()
+
+export function startServer(target = PORT) {
+  return app.listen(target, () => {
+    if (typeof target === 'string') {
+      console.log(`FlowPatch running on socket ${target}`)
+      return
+    }
+
+    console.log(`FlowPatch running on http://localhost:${target}`)
+  })
+}
+
+if (process.argv[1] === ENTRY_FILE) {
+  startServer()
+}
 
 export default app
