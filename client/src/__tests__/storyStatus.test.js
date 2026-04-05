@@ -4,6 +4,7 @@ import { compareStories, getStoryStatusMeta, normalizeStoryStatus } from '../uti
 describe('storyStatus', () => {
   it('maps older status names into the current workflow', () => {
     expect(normalizeStoryStatus('Planned')).toBe('New')
+    expect(normalizeStoryStatus('moved to next release')).toBe('Next Release')
     expect(normalizeStoryStatus('ready for dev')).toBe('Ready for Develop')
     expect(normalizeStoryStatus('testing')).toBe('In QA')
   })

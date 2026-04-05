@@ -50,7 +50,7 @@ The app now also tracks top-level MVP stories separately from day-to-day tasks.
 - Stories live on a separate `Story List` page
 - Stories are grouped by MVP, and the page shows one MVP at a time through an MVP switcher
 - Story links open directly to ADO or any other tracker URL
-- Story statuses use a fixed workflow: `New`, `Ready for Develop`, `In Progress`, `Blocked`, `In Review`, `Ready for QA`, `In QA`, `Done`, `Merged`, `Released`
+- Story statuses use a fixed workflow: `New`, `Next Release`, `Ready for Develop`, `In Progress`, `Blocked`, `In Review`, `Ready for QA`, `In QA`, `Done`, `Merged`, `Released`
 
 Use the header tabs to switch between `Task Board` and `Story List`.
 

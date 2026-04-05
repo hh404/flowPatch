@@ -5,6 +5,11 @@ const STORY_STATUS_FLOW = [
     className: 'border-slate-200 bg-slate-50 text-slate-700'
   },
   {
+    label: 'Next Release',
+    aliases: ['moved to next release', 'deferred', 'carry over', 'punted'],
+    className: 'border-stone-200 bg-stone-50 text-stone-700'
+  },
+  {
     label: 'Ready for Develop',
     aliases: ['ready', 'ready for dev', 'ready for development'],
     className: 'border-sky-200 bg-sky-50 text-sky-700'

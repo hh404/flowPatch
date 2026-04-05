@@ -84,6 +84,7 @@ Each MVP story should have at least:
 Story status should use a fixed delivery flow:
 
 - `New`
+- `Next Release`
 - `Ready for Develop`
 - `In Progress`
 - `Blocked`

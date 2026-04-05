@@ -111,7 +111,7 @@ export default function StoryModal({ mode = 'create', initialStory, mvpOptions =
               ))}
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              Flow: New, Ready for Develop, In Progress, Blocked, In Review, Ready for QA, In QA, Done, Merged, Released.
+              Flow: New, Next Release, Ready for Develop, In Progress, Blocked, In Review, Ready for QA, In QA, Done, Merged, Released.
             </p>
           </div>
 
