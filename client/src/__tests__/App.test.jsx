@@ -16,6 +16,8 @@ const mockStories = [
     mvp: 'Core Platform MVP',
     title: 'Story tracker',
     link: 'https://dev.azure.com/example/story-1',
+    folder: '/Users/hans/workspaces/core-platform/story-tracker',
+    description: 'Draft lives in [proto](/Users/hans/mockups/proto.html)',
     status: 'Ready for Develop',
     createdAt: '',
     updatedAt: '2026-04-05T11:00:00.000Z'
@@ -32,6 +34,9 @@ beforeEach(() => {
     const method = options.method ?? 'GET'
 
     if (url === '/api/tasks' && method === 'GET') return jsonResponse(mockTasks)
+    if (url === '/api/mvps' && method === 'GET') return jsonResponse([
+      { name: 'Core Platform MVP', folder: '/Users/hans/workspaces/core-platform' }
+    ])
     if (url === '/api/stories' && method === 'GET') return jsonResponse(mockStories)
     if (url === '/api/tasks' && method === 'POST') return jsonResponse(mockTasks[0])
     if (url === '/api/tasks/1' && method === 'PATCH') return jsonResponse({ ...mockTasks[0], status: 'doing' })
@@ -41,6 +46,8 @@ beforeEach(() => {
         mvp: 'Search MVP',
         title: 'New story',
         link: 'https://dev.azure.com/example/story-2',
+        folder: '/Users/hans/workspaces/search/new-story',
+        description: 'Half built with [demo](/Users/hans/mockups/demo.html)',
         status: 'In Review',
         createdAt: '',
         updatedAt: ''
@@ -83,6 +90,9 @@ describe('App', () => {
     global.fetch.mockImplementation((url, options = {}) => {
       const method = options.method ?? 'GET'
       if (url === '/api/tasks' && method === 'GET') return jsonResponse(mockTasks)
+      if (url === '/api/mvps' && method === 'GET') return jsonResponse([
+        { name: 'Core Platform MVP', folder: '/Users/hans/workspaces/core-platform' }
+      ])
       if (url === '/api/stories' && method === 'GET') return jsonResponse(mockStories)
       if (url === '/api/tasks' && method === 'POST') return jsonResponse(newTask)
       return jsonResponse({})
@@ -102,6 +112,9 @@ describe('App', () => {
     global.fetch.mockImplementation((url, options = {}) => {
       const method = options.method ?? 'GET'
       if (url === '/api/tasks' && method === 'GET') return jsonResponse(mockTasks)
+      if (url === '/api/mvps' && method === 'GET') return jsonResponse([
+        { name: 'Core Platform MVP', folder: '/Users/hans/workspaces/core-platform' }
+      ])
       if (url === '/api/stories' && method === 'GET') return jsonResponse(mockStories)
       if (url === '/api/tasks/1' && method === 'PATCH') return jsonResponse(updatedTask)
       return jsonResponse({})
@@ -151,6 +164,9 @@ describe('App', () => {
     await userEvent.type(screen.getByLabelText(/^mvp$/i), 'Search MVP')
     await userEvent.type(screen.getByLabelText(/title/i), 'New story')
     await userEvent.type(screen.getByLabelText(/link/i), 'https://dev.azure.com/example/story-2')
+    fireEvent.change(screen.getByLabelText(/^description$/i), {
+      target: { value: 'Half built with [demo](/Users/hans/mockups/demo.html)' }
+    })
     await userEvent.selectOptions(screen.getByLabelText(/status/i), 'In Review')
     await userEvent.click(screen.getByRole('button', { name: /create story/i }))
 
@@ -162,6 +178,8 @@ describe('App', () => {
           mvp: 'Search MVP',
           title: 'New story',
           link: 'https://dev.azure.com/example/story-2',
+          folder: '',
+          description: 'Half built with [demo](/Users/hans/mockups/demo.html)',
           status: 'In Review'
         })
       })

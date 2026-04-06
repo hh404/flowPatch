@@ -3,6 +3,7 @@ import cors from 'cors'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
 import taskRoutes from './routes/tasks.js'
+import mvpRoutes from './routes/mvps.js'
 import storyRoutes from './routes/stories.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -15,6 +16,7 @@ export function createApp() {
   app.use(cors({ origin: 'http://localhost:47292' }))
   app.use(express.json())
   app.use('/api/tasks', taskRoutes)
+  app.use('/api/mvps', mvpRoutes)
   app.use('/api/stories', storyRoutes)
 
   // Serve built frontend in production

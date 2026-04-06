@@ -1,19 +1,26 @@
 import { Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
+import { isLocalStoryLink, openLocalStoryLink, selectLocalFolder } from '../localLink.js'
 import { readStories, writeStories } from '../storyStore.js'
 
 const router = Router()
 const DEFAULT_MVP_NAME = 'Current MVP'
-const ALLOWED_FIELDS = ['mvp', 'title', 'link', 'status']
+const ALLOWED_FIELDS = ['mvp', 'title', 'link', 'folder', 'description', 'status']
 
 function normalizeRequiredText(value) {
   return value?.trim() ?? ''
 }
 
+function normalizeOptionalText(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 function normalizeStory(story) {
   return {
     ...story,
-    mvp: normalizeRequiredText(story.mvp) || DEFAULT_MVP_NAME
+    mvp: normalizeRequiredText(story.mvp) || DEFAULT_MVP_NAME,
+    folder: normalizeOptionalText(story.folder),
+    description: normalizeOptionalText(story.description)
   }
 }
 
@@ -31,6 +38,8 @@ router.post('/', async (req, res) => {
     const mvp = normalizeRequiredText(req.body.mvp) || DEFAULT_MVP_NAME
     const title = normalizeRequiredText(req.body.title)
     const link = normalizeRequiredText(req.body.link)
+    const folder = normalizeOptionalText(req.body.folder)
+    const description = normalizeOptionalText(req.body.description)
     const status = normalizeRequiredText(req.body.status)
 
     if (!title || !link || !status) {
@@ -43,6 +52,8 @@ router.post('/', async (req, res) => {
       id: uuidv4(),
       title,
       link,
+      folder,
+      description,
       status,
       createdAt: now,
       updatedAt: now
@@ -53,6 +64,44 @@ router.post('/', async (req, res) => {
     await writeStories(stories)
     res.status(201).json(story)
   } catch {
+    res.status(500).json({ error: 'internal error' })
+  }
+})
+
+router.post('/open-local', async (req, res) => {
+  try {
+    const path = normalizeRequiredText(req.body.path)
+    const action = normalizeRequiredText(req.body.action) || 'open'
+
+    if (!path || !isLocalStoryLink(path)) {
+      return res.status(400).json({ error: 'local path required' })
+    }
+
+    const result = await openLocalStoryLink(path, action)
+    res.json(result)
+  } catch (error) {
+    if (error.message === 'invalid action' || error.message === 'invalid file url' || error.message === 'local path required') {
+      return res.status(400).json({ error: error.message })
+    }
+
+    if (error.code === 'ENOENT') {
+      return res.status(404).json({ error: 'path not found' })
+    }
+
+    res.status(500).json({ error: 'internal error' })
+  }
+})
+
+router.post('/select-local-folder', async (req, res) => {
+  try {
+    const currentPath = normalizeOptionalText(req.body.currentPath)
+    const result = await selectLocalFolder(currentPath)
+    res.json(result)
+  } catch (error) {
+    if (error.message === 'invalid file url' || error.message === 'local path required') {
+      return res.status(400).json({ error: error.message })
+    }
+
     res.status(500).json({ error: 'internal error' })
   }
 })
@@ -80,6 +129,14 @@ router.patch('/:id', async (req, res) => {
     if (updates.link !== undefined) {
       updates.link = normalizeRequiredText(updates.link)
       if (!updates.link) return res.status(400).json({ error: 'link required' })
+    }
+
+    if (updates.folder !== undefined) {
+      updates.folder = normalizeOptionalText(updates.folder)
+    }
+
+    if (updates.description !== undefined) {
+      updates.description = normalizeOptionalText(updates.description)
     }
 
     if (updates.status !== undefined) {

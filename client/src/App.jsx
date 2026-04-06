@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTasks } from './hooks/useTasks.js'
+import { useMvpFolders } from './hooks/useMvpFolders.js'
 import { useStories } from './hooks/useStories.js'
 import { useTaskReminders } from './hooks/useTaskReminders.js'
+import { selectStoryLocalFolder } from './api.js'
 import QuickInput from './components/QuickInput.jsx'
 import Column from './components/Column.jsx'
 import TaskModal from './components/TaskModal.jsx'
@@ -257,12 +259,19 @@ function BoardPage({ currentPage, onNavigate }) {
 
 function StoriesPage({ currentPage, onNavigate }) {
   const { stories, loading, error, addStory, updateStory, deleteStory } = useStories()
+  const {
+    mvpFolders,
+    loading: mvpFoldersLoading,
+    error: mvpFoldersError,
+    setMvpFolder,
+    deleteMvpFolder
+  } = useMvpFolders()
   const [storyEditor, setStoryEditor] = useState(null)
   const mvpNames = [...new Set(stories.map(story => normalizeStoryMvp(story.mvp)))].sort((left, right) => left.localeCompare(right))
   const storyCount = stories.length
 
-  if (loading) return <div className="flex h-screen items-center justify-center bg-slate-100 text-gray-400">Loading…</div>
-  if (error) return <div className="flex h-screen items-center justify-center bg-slate-100 text-red-400">Error loading data</div>
+  if (loading || mvpFoldersLoading) return <div className="flex h-screen items-center justify-center bg-slate-100 text-gray-400">Loading…</div>
+  if (error || mvpFoldersError) return <div className="flex h-screen items-center justify-center bg-slate-100 text-red-400">Error loading data</div>
 
   async function handleStoryConfirm(data) {
     if (storyEditor?.mode === 'edit') {
@@ -282,6 +291,18 @@ function StoriesPage({ currentPage, onNavigate }) {
     setStoryEditor({ mode: 'edit', story })
   }
 
+  async function handleChooseMvpFolder(name, currentFolder = '') {
+    const result = await selectStoryLocalFolder(currentFolder)
+    const path = result.path?.trim() ?? ''
+    if (!path) return
+
+    await setMvpFolder(name, path)
+  }
+
+  async function handleClearMvpFolder(name) {
+    await deleteMvpFolder(name)
+  }
+
   return (
     <div className="flex h-screen flex-col bg-slate-100 font-sans text-slate-900">
       <ShellHeader
@@ -296,9 +317,12 @@ function StoriesPage({ currentPage, onNavigate }) {
       <main className="flex-1 overflow-auto p-4">
         <StoryPanel
           stories={stories}
+          mvpFolders={mvpFolders}
           onAdd={openCreateStoryEditor}
           onEdit={openEditStoryEditor}
           onDelete={deleteStory}
+          onSetMvpFolder={handleChooseMvpFolder}
+          onClearMvpFolder={handleClearMvpFolder}
         />
       </main>
 

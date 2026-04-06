@@ -8,7 +8,9 @@ export function normalizeStoryMvp(mvp) {
 export function normalizeStory(story) {
   return {
     ...story,
-    mvp: normalizeStoryMvp(story?.mvp)
+    mvp: normalizeStoryMvp(story?.mvp),
+    folder: typeof story?.folder === 'string' ? story.folder.trim() : '',
+    description: typeof story?.description === 'string' ? story.description.trim() : ''
   }
 }
 

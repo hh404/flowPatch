@@ -79,7 +79,11 @@ Each MVP story should have at least:
 - `mvp`
 - `title`
 - `link`
+- `description`
 - `status`
+
+`link` may point to an ADO URL or a local filesystem path when the artifact only exists on disk.
+`description` should support normal notes plus local/web links for drafts, half-finished artifacts, and references.
 
 Story status should use a fixed delivery flow:
 
@@ -140,6 +144,8 @@ Each task should support:
 - stories are a separate list from tasks
 - stories represent top-level MVP scope, not daily execution steps
 - story status should come from the fixed workflow list instead of free text
+- local file links should support direct open/reveal from the story list
+- description should render local links like `[mockup](/Users/.../demo.html)` as actionable links
 
 ## UX Plan
 

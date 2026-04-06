@@ -46,10 +46,14 @@ New quick-capture items default to **Inbox**.
 
 The app now also tracks top-level MVP stories separately from day-to-day tasks.
 
-- Each story has `mvp`, `title`, `link`, and `status`
+- Each story has `mvp`, `title`, `link`, optional `folder`, `description`, and `status`
 - Stories live on a separate `Story List` page
 - Stories are grouped by MVP, and the page shows one MVP at a time through an MVP switcher
-- Story links open directly to ADO or any other tracker URL
+- Each MVP can also keep its own local folder binding, managed from the current MVP card through `Choose MVP Folder`
+- Story links can be web URLs or local file paths like `file://`, `/Users/...`, `~/...`, `./...`
+- Stories can also carry a dedicated local folder, picked through `Choose Folder` in the editor and exposed as a wide `Folder` button next to `Edit`
+- Local file stories support `Open` and `Reveal` actions so you can jump straight into Finder/filesystem
+- Story descriptions support normal text plus links like `[mockup](/Users/.../demo.html)` or `[doc](https://...)`
 - Story statuses use a fixed workflow: `New`, `Next Release`, `Ready for Develop`, `In Progress`, `Blocked`, `In Review`, `Ready for QA`, `In QA`, `Done`, `Merged`, `Released`
 
 Use the header tabs to switch between `Task Board` and `Story List`.
@@ -111,3 +115,5 @@ Tasks can be edited after creation. The editor supports:
 Stored in `server/data/tasks.json`. Back up this file to preserve your tasks.
 
 Stories are stored in `server/data/stories.json`.
+
+MVP folder bindings are stored in `server/data/mvps.json`.
