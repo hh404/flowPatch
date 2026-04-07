@@ -43,6 +43,7 @@ export default function TaskModal({ mode = 'create', initialTask, onConfirm, onC
   const titleRef = useRef(null)
   const showsFollowUpFields = form.type === 'waiting' || form.type === 'followup'
   const initialReminder = initialTask?.remindAt ?? null
+  const allowBackdropClose = mode !== 'edit'
 
   useEffect(() => {
     titleRef.current?.focus()
@@ -82,8 +83,11 @@ export default function TaskModal({ mode = 'create', initialTask, onConfirm, onC
 
   return (
     <div
+      data-testid="task-modal-backdrop"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+      onClick={event => {
+        if (allowBackdropClose && event.target === event.currentTarget) onClose()
+      }}
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         <div className="px-5 pt-5 pb-4 border-b border-gray-100">
