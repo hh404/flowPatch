@@ -35,11 +35,25 @@ export function getStoryLinkFullText(link) {
 
 export function getStoryLinkDisplay(link) {
   const trimmed = link?.trim() ?? ''
-  if (!isLocalStoryLink(trimmed)) return trimmed
+  if (!trimmed) return ''
 
-  const fullText = getStoryLinkFullText(trimmed)
-  const segments = fullText.split(/[\\/]/).filter(Boolean)
+  if (isLocalStoryLink(trimmed)) {
+    const fullText = getStoryLinkFullText(trimmed)
+    const segments = fullText.split(/[\\/]/).filter(Boolean)
 
-  if (segments.length === 0) return fullText
-  return segments.at(-1) ?? fullText
+    if (segments.length === 0) return fullText
+    return segments.at(-1) ?? fullText
+  }
+
+  try {
+    const url = new URL(trimmed)
+    const decodedPath = url.pathname
+      .split('/')
+      .map(segment => decodeURIComponent(segment))
+      .join('/')
+
+    return `${url.host}${decodedPath}${url.search}`
+  } catch {
+    return trimmed
+  }
 }

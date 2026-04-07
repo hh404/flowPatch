@@ -60,6 +60,17 @@ export async function removeMvpFolder(name) {
   if (!res.ok) throw new Error('delete mvp folder failed')
 }
 
+export async function openOutlookSearch(title) {
+  const res = await fetch(`${MVPS_BASE}/open-outlook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title })
+  })
+
+  if (!res.ok) throw new Error('open outlook search failed')
+  return res.json()
+}
+
 export async function createStory(data) {
   const res = await fetch(STORIES_BASE, {
     method: 'POST',

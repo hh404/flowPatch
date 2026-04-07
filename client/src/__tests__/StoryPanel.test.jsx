@@ -2,10 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import StoryPanel from '../components/StoryPanel.jsx'
-import { openStoryLocalLink } from '../api.js'
+import { openOutlookSearch, openStoryLocalLink } from '../api.js'
 
 vi.mock('../api.js', () => ({
-  openStoryLocalLink: vi.fn(() => Promise.resolve({}))
+  openStoryLocalLink: vi.fn(() => Promise.resolve({})),
+  openOutlookSearch: vi.fn(() => Promise.resolve({}))
 }))
 
 beforeEach(() => {
@@ -49,7 +50,8 @@ const stories = [
 const mvpFolders = [
   {
     name: 'Core Platform MVP',
-    folder: '/Users/hans/workspaces/core-platform'
+    folder: '/Users/hans/workspaces/core-platform',
+    shortcuts: []
   }
 ]
 
@@ -64,6 +66,7 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
     expect(screen.getByRole('tab', { name: /core platform mvp/i })).toBeInTheDocument()
@@ -88,9 +91,10 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
-    expect(screen.getByText(/no stories yet/i)).toBeInTheDocument()
+    expect(screen.getByText(/no stories or shortcuts yet/i)).toBeInTheDocument()
   })
 
   it('calls onAdd when add story button clicked', async () => {
@@ -104,6 +108,7 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: /^add story$/i }))
@@ -121,6 +126,7 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: /add to core platform mvp/i }))
@@ -137,6 +143,7 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
     await userEvent.click(screen.getByRole('tab', { name: /search mvp/i }))
@@ -155,6 +162,7 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: /open folder for core platform mvp/i }))
@@ -185,6 +193,7 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={onSetMvpFolder}
         onClearMvpFolder={onClearMvpFolder}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
 
@@ -206,9 +215,71 @@ describe('StoryPanel', () => {
         onDelete={vi.fn()}
         onSetMvpFolder={vi.fn()}
         onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: /edit story implement flowpatch board/i }))
     expect(onEdit).toHaveBeenCalledWith(stories[0])
+  })
+
+  it('opens outlook shortcuts from the shortcuts tab', async () => {
+    render(
+      <StoryPanel
+        stories={stories}
+        mvpFolders={[
+          {
+            ...mvpFolders[0],
+            shortcuts: [
+              {
+                id: 'shortcut-1',
+                label: 'Mailing List',
+                title: 'mvp3 package notification'
+              }
+            ]
+          }
+        ]}
+        onAdd={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onSetMvpFolder={vi.fn()}
+        onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Shortcuts' }))
+    expect(screen.getByText('Mailing List')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /open outlook \+ copy/i }))
+
+    expect(openOutlookSearch).toHaveBeenCalledWith('mvp3 package notification')
+  })
+
+  it('saves a shortcut for the active mvp', async () => {
+    const onSetMvpShortcuts = vi.fn(() => Promise.resolve())
+
+    render(
+      <StoryPanel
+        stories={stories}
+        mvpFolders={mvpFolders}
+        onAdd={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onSetMvpFolder={vi.fn()}
+        onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={onSetMvpShortcuts}
+      />
+    )
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Shortcuts' }))
+    await userEvent.type(screen.getByLabelText(/shortcut name/i), 'Mailing List')
+    await userEvent.type(screen.getByLabelText(/search title/i), 'mvp3 package notification')
+    await userEvent.click(screen.getByRole('button', { name: /add shortcut/i }))
+
+    expect(onSetMvpShortcuts).toHaveBeenCalledWith('Core Platform MVP', [
+      {
+        label: 'Mailing List',
+        title: 'mvp3 package notification'
+      }
+    ])
   })
 })

@@ -15,6 +15,11 @@ describe('storyLink', () => {
     expect(getStoryLinkDisplay('/Users/hans/Documents/review.md')).toBe('review.md')
   })
 
+  it('renders remote urls from the tail of the path instead of the protocol prefix', () => {
+    expect(getStoryLinkDisplay('https://dev.azure.com/example/project/_workitems/edit/123456')).toBe('dev.azure.com/example/project/_workitems/edit/123456')
+    expect(getStoryLinkDisplay('https://www.baidu.com/xxxxx/xx/123456')).toBe('www.baidu.com/xxxxx/xx/123456')
+  })
+
   it('keeps the full path available for tooltips and actions', () => {
     expect(getStoryLinkFullText('file:///Users/hans/mockups/demo%20v2.html')).toBe('/Users/hans/mockups/demo v2.html')
   })

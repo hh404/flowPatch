@@ -2,11 +2,28 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchMvpFolders, removeMvpFolder, upsertMvpFolder } from '../api.js'
 import { normalizeStoryMvp } from '../utils/storyMvp.js'
 
+function normalizeShortcut(item) {
+  return {
+    id: typeof item?.id === 'string' ? item.id.trim() : '',
+    label: typeof item?.label === 'string' ? item.label.trim() : '',
+    title: typeof item?.title === 'string' ? item.title.trim() : ''
+  }
+}
+
+function normalizeShortcuts(items) {
+  if (!Array.isArray(items)) return []
+
+  return items
+    .map(normalizeShortcut)
+    .filter(item => item.label && item.title)
+}
+
 function normalizeMvpFolder(item) {
   return {
     ...item,
     name: normalizeStoryMvp(item?.name),
-    folder: typeof item?.folder === 'string' ? item.folder.trim() : ''
+    folder: typeof item?.folder === 'string' ? item.folder.trim() : '',
+    shortcuts: normalizeShortcuts(item?.shortcuts)
   }
 }
 
@@ -22,11 +39,37 @@ export function useMvpFolders() {
       .finally(() => setLoading(false))
   }, [])
 
-  const setMvpFolder = useCallback(async (name, folder) => {
-    const saved = await upsertMvpFolder({
-      name: normalizeStoryMvp(name),
-      folder: folder?.trim() ?? ''
-    })
+  const saveMvpConfig = useCallback(async (name, updates) => {
+    const normalizedName = normalizeStoryMvp(name)
+    const current = mvpFolders.find(item => item.name === normalizedName) ?? {
+      name: normalizedName,
+      folder: '',
+      shortcuts: []
+    }
+    const next = normalizeMvpFolder({ ...current, ...updates, name: normalizedName })
+    const hasFolder = Boolean(next.folder)
+    const hasShortcuts = next.shortcuts.length > 0
+
+    if (!hasFolder && !hasShortcuts) {
+      if (mvpFolders.some(item => item.name === normalizedName)) {
+        await removeMvpFolder(normalizedName)
+        setMvpFolders(prev => prev.filter(item => item.name !== normalizedName))
+      }
+
+      return next
+    }
+
+    const payload = { name: normalizedName }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'folder')) {
+      payload.folder = next.folder
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'shortcuts')) {
+      payload.shortcuts = next.shortcuts
+    }
+
+    const saved = await upsertMvpFolder(payload)
     const normalized = normalizeMvpFolder(saved)
 
     setMvpFolders(prev => {
@@ -39,13 +82,26 @@ export function useMvpFolders() {
     })
 
     return normalized
-  }, [])
+  }, [mvpFolders])
+
+  const setMvpFolder = useCallback(async (name, folder) => (
+    saveMvpConfig(name, { folder: folder?.trim() ?? '' })
+  ), [saveMvpConfig])
+
+  const setMvpShortcuts = useCallback(async (name, shortcuts) => (
+    saveMvpConfig(name, { shortcuts: normalizeShortcuts(shortcuts) })
+  ), [saveMvpConfig])
 
   const deleteFolder = useCallback(async (name) => {
-    const normalizedName = normalizeStoryMvp(name)
-    await removeMvpFolder(normalizedName)
-    setMvpFolders(prev => prev.filter(item => item.name !== normalizedName))
-  }, [])
+    await saveMvpConfig(name, { folder: '' })
+  }, [saveMvpConfig])
 
-  return { mvpFolders, loading, error, setMvpFolder, deleteMvpFolder: deleteFolder }
+  return {
+    mvpFolders,
+    loading,
+    error,
+    setMvpFolder,
+    setMvpShortcuts,
+    deleteMvpFolder: deleteFolder
+  }
 }

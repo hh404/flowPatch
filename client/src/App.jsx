@@ -264,11 +264,16 @@ function StoriesPage({ currentPage, onNavigate }) {
     loading: mvpFoldersLoading,
     error: mvpFoldersError,
     setMvpFolder,
+    setMvpShortcuts,
     deleteMvpFolder
   } = useMvpFolders()
   const [storyEditor, setStoryEditor] = useState(null)
-  const mvpNames = [...new Set(stories.map(story => normalizeStoryMvp(story.mvp)))].sort((left, right) => left.localeCompare(right))
+  const mvpNames = [...new Set([
+    ...stories.map(story => normalizeStoryMvp(story.mvp)),
+    ...mvpFolders.map(item => normalizeStoryMvp(item.name))
+  ])].sort((left, right) => left.localeCompare(right))
   const storyCount = stories.length
+  const shortcutCount = mvpFolders.reduce((total, item) => total + (item.shortcuts?.length ?? 0), 0)
 
   if (loading || mvpFoldersLoading) return <div className="flex h-screen items-center justify-center bg-slate-100 text-gray-400">Loading…</div>
   if (error || mvpFoldersError) return <div className="flex h-screen items-center justify-center bg-slate-100 text-red-400">Error loading data</div>
@@ -303,6 +308,10 @@ function StoriesPage({ currentPage, onNavigate }) {
     await deleteMvpFolder(name)
   }
 
+  async function handleSetMvpShortcuts(name, shortcuts) {
+    await setMvpShortcuts(name, shortcuts)
+  }
+
   return (
     <div className="flex h-screen flex-col bg-slate-100 font-sans text-slate-900">
       <ShellHeader
@@ -310,7 +319,8 @@ function StoriesPage({ currentPage, onNavigate }) {
         onNavigate={onNavigate}
         summary={[
           { label: `MVPs ${mvpNames.length}` },
-          { label: `Stories ${storyCount}` }
+          { label: `Stories ${storyCount}` },
+          { label: `Shortcuts ${shortcutCount}` }
         ]}
       />
 
@@ -323,6 +333,7 @@ function StoriesPage({ currentPage, onNavigate }) {
           onDelete={deleteStory}
           onSetMvpFolder={handleChooseMvpFolder}
           onClearMvpFolder={handleClearMvpFolder}
+          onSetMvpShortcuts={handleSetMvpShortcuts}
         />
       </main>
 

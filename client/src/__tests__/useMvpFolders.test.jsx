@@ -5,7 +5,8 @@ import { useMvpFolders } from '../hooks/useMvpFolders.js'
 const mockMvpFolders = [
   {
     name: 'Core Platform MVP',
-    folder: '/Users/hans/workspaces/core-platform'
+    folder: '/Users/hans/workspaces/core-platform',
+    shortcuts: []
   }
 ]
 
@@ -57,5 +58,39 @@ describe('useMvpFolders', () => {
     })
 
     expect(result.current.mvpFolders).toHaveLength(0)
+  })
+
+  it('saves shortcuts for an mvp', async () => {
+    const saved = {
+      name: 'Core Platform MVP',
+      folder: '/Users/hans/workspaces/core-platform',
+      shortcuts: [
+        {
+          id: 'shortcut-1',
+          label: 'Mailing List',
+          title: 'mvp3 package notification'
+        }
+      ]
+    }
+
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => mockMvpFolders })
+      .mockResolvedValueOnce({ ok: true, json: async () => saved })
+
+    const { result } = renderHook(() => useMvpFolders())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.setMvpShortcuts('Core Platform MVP', saved.shortcuts)
+    })
+
+    expect(fetch).toHaveBeenCalledWith('/api/mvps', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'Core Platform MVP',
+        shortcuts: saved.shortcuts
+      })
+    }))
+    expect(result.current.mvpFolders[0].shortcuts).toEqual(saved.shortcuts)
   })
 })

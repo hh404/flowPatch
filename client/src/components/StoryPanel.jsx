@@ -1,9 +1,28 @@
 import { useEffect, useState } from 'react'
-import { openStoryLocalLink } from '../api.js'
+import { openOutlookSearch, openStoryLocalLink } from '../api.js'
 import { parseStoryDescription } from '../utils/storyDescription.js'
 import { compareStories, getStoryStatusMeta } from '../utils/storyStatus.js'
 import { getStoryLinkDisplay, getStoryLinkFullText, isLocalStoryLink } from '../utils/storyLink.js'
 import { compareStoryGroups, normalizeStoryMvp } from '../utils/storyMvp.js'
+
+const PANEL_TABS = {
+  stories: 'stories',
+  shortcuts: 'shortcuts'
+}
+
+const RIGHT_EDGE_TRUNCATION_STYLE = {
+  direction: 'rtl',
+  textAlign: 'left',
+  unicodeBidi: 'plaintext'
+}
+
+function createShortcutDraft(shortcut = null) {
+  return {
+    id: shortcut?.id ?? '',
+    label: shortcut?.label ?? '',
+    title: shortcut?.title ?? ''
+  }
+}
 
 function DescriptionSegment({ segment, onOpenLocalLink }) {
   if (segment.type === 'text') {
@@ -126,9 +145,11 @@ function StoryCard({ story, onEdit, onDelete, onOpenLocalLink }) {
             target="_blank"
             rel="noreferrer"
             title={fullLinkText}
-            className="block max-w-full truncate text-xs text-slate-500 transition-colors hover:text-slate-700"
+            className="block max-w-full overflow-hidden text-xs text-slate-500 transition-colors hover:text-slate-700"
           >
-            {displayLink}
+            <span className="block truncate" style={RIGHT_EDGE_TRUNCATION_STYLE}>
+              {displayLink}
+            </span>
           </a>
         )}
         <DescriptionBlock description={story.description} onOpenLocalLink={onOpenLocalLink} />
@@ -189,7 +210,56 @@ function StoryCard({ story, onEdit, onDelete, onOpenLocalLink }) {
   )
 }
 
-function groupStoriesByMvp(stories) {
+function ShortcutCard({ shortcut, isBusy, onRun, onEdit, onDelete }) {
+  return (
+    <article className="flex min-h-40 min-w-0 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="space-y-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold text-slate-800">{shortcut.label}</h3>
+            <p className="mt-1 text-xs text-slate-500">Copies this title, then activates Outlook.</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700">
+            Outlook
+          </span>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Search Title</div>
+          <div className="mt-1 break-words font-mono text-xs text-slate-700">{shortcut.title}</div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onRun(shortcut)}
+          disabled={isBusy}
+          className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-slate-700 disabled:cursor-wait disabled:opacity-60"
+        >
+          {isBusy ? 'Opening…' : 'Open Outlook + Copy'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(shortcut)}
+          disabled={isBusy}
+          className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(shortcut.id)}
+          disabled={isBusy}
+          className="rounded-lg px-3 py-2 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+        >
+          Delete
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function groupStoriesByMvp(stories, mvpFolders) {
   const groups = new Map()
 
   stories.forEach(story => {
@@ -198,6 +268,17 @@ function groupStoriesByMvp(stories) {
     const updatedAt = story.updatedAt ? new Date(story.updatedAt).getTime() : 0
 
     current.stories.push({ ...story, mvp })
+    current.lastUpdated = Math.max(current.lastUpdated, updatedAt)
+    groups.set(mvp, current)
+  })
+
+  mvpFolders.forEach(item => {
+    const mvp = normalizeStoryMvp(item.name)
+    if (!mvp) return
+
+    const current = groups.get(mvp) ?? { name: mvp, stories: [], lastUpdated: 0 }
+    const updatedAt = item.updatedAt ? new Date(item.updatedAt).getTime() : 0
+
     current.lastUpdated = Math.max(current.lastUpdated, updatedAt)
     groups.set(mvp, current)
   })
@@ -217,17 +298,24 @@ export default function StoryPanel({
   onEdit,
   onDelete,
   onSetMvpFolder,
-  onClearMvpFolder
+  onClearMvpFolder,
+  onSetMvpShortcuts
 }) {
-  const groups = groupStoriesByMvp(stories)
+  const groups = groupStoriesByMvp(stories, mvpFolders)
   const [activeMvp, setActiveMvp] = useState('')
-  const [localLinkError, setLocalLinkError] = useState('')
+  const [activePanelTab, setActivePanelTab] = useState(PANEL_TABS.stories)
+  const [panelError, setPanelError] = useState('')
+  const [panelStatus, setPanelStatus] = useState('')
   const [mvpFolderPendingAction, setMvpFolderPendingAction] = useState('')
+  const [shortcutPendingAction, setShortcutPendingAction] = useState('')
+  const [shortcutDraft, setShortcutDraft] = useState(createShortcutDraft())
   const activeGroup = groups.find(group => group.name === activeMvp) ?? groups[0] ?? null
-  const mvpFolderMap = new Map(
-    mvpFolders.map(item => [normalizeStoryMvp(item.name), item.folder?.trim() ?? ''])
+  const mvpConfigMap = new Map(
+    mvpFolders.map(item => [normalizeStoryMvp(item.name), item])
   )
-  const activeMvpFolder = activeGroup ? (mvpFolderMap.get(activeGroup.name) ?? '') : ''
+  const activeMvpConfig = activeGroup ? mvpConfigMap.get(activeGroup.name) ?? null : null
+  const activeMvpFolder = activeMvpConfig?.folder?.trim() ?? ''
+  const activeShortcuts = activeMvpConfig?.shortcuts ?? []
   const activeMvpFolderDisplay = activeMvpFolder ? getStoryLinkDisplay(activeMvpFolder) : ''
   const activeMvpFolderFullText = activeMvpFolder ? getStoryLinkFullText(activeMvpFolder) : ''
 
@@ -242,12 +330,16 @@ export default function StoryPanel({
     }
   }, [activeMvp, groups])
 
+  useEffect(() => {
+    setShortcutDraft(createShortcutDraft())
+  }, [activeGroup?.name])
+
   async function handleOpenLocalLink(link, action) {
     try {
       await openStoryLocalLink(link, action)
-      setLocalLinkError('')
+      setPanelError('')
     } catch {
-      setLocalLinkError(action === 'reveal'
+      setPanelError(action === 'reveal'
         ? 'Could not reveal the local path. Check that the file or folder still exists.'
         : 'Could not open the local path. Check that the file or folder still exists.'
       )
@@ -260,9 +352,10 @@ export default function StoryPanel({
     setMvpFolderPendingAction('choose')
     try {
       await onSetMvpFolder(activeGroup.name, activeMvpFolder)
-      setLocalLinkError('')
+      setPanelError('')
+      setPanelStatus('MVP folder updated.')
     } catch {
-      setLocalLinkError('Could not set the MVP folder. Check that the folder picker is available.')
+      setPanelError('Could not set the MVP folder. Check that the folder picker is available.')
     } finally {
       setMvpFolderPendingAction('')
     }
@@ -274,11 +367,88 @@ export default function StoryPanel({
     setMvpFolderPendingAction('clear')
     try {
       await onClearMvpFolder(activeGroup.name)
-      setLocalLinkError('')
+      setPanelError('')
+      setPanelStatus('MVP folder cleared.')
     } catch {
-      setLocalLinkError('Could not clear the MVP folder.')
+      setPanelError('Could not clear the MVP folder.')
     } finally {
       setMvpFolderPendingAction('')
+    }
+  }
+
+  function startEditingShortcut(shortcut) {
+    setShortcutDraft(createShortcutDraft(shortcut))
+    setPanelError('')
+    setPanelStatus('')
+  }
+
+  function resetShortcutDraft() {
+    setShortcutDraft(createShortcutDraft())
+  }
+
+  async function handleSaveShortcut(event) {
+    event.preventDefault()
+    if (!activeGroup || !onSetMvpShortcuts) return
+
+    const label = shortcutDraft.label.trim()
+    const title = shortcutDraft.title.trim()
+
+    if (!label || !title) {
+      setPanelError('Shortcut name and search title are required.')
+      return
+    }
+
+    const nextShortcuts = shortcutDraft.id
+      ? activeShortcuts.map(shortcut => (
+        shortcut.id === shortcutDraft.id ? { ...shortcut, label, title } : shortcut
+      ))
+      : [...activeShortcuts, { label, title }]
+
+    setShortcutPendingAction('save')
+    try {
+      await onSetMvpShortcuts(activeGroup.name, nextShortcuts)
+      setPanelError('')
+      setPanelStatus(shortcutDraft.id ? 'Shortcut updated.' : 'Shortcut added.')
+      resetShortcutDraft()
+    } catch {
+      setPanelError('Could not save the shortcut.')
+    } finally {
+      setShortcutPendingAction('')
+    }
+  }
+
+  async function handleDeleteShortcut(shortcutId) {
+    if (!activeGroup || !onSetMvpShortcuts) return
+
+    setShortcutPendingAction(`delete:${shortcutId}`)
+    try {
+      await onSetMvpShortcuts(
+        activeGroup.name,
+        activeShortcuts.filter(shortcut => shortcut.id !== shortcutId)
+      )
+      setPanelError('')
+      setPanelStatus('Shortcut removed.')
+
+      if (shortcutDraft.id === shortcutId) {
+        resetShortcutDraft()
+      }
+    } catch {
+      setPanelError('Could not delete the shortcut.')
+    } finally {
+      setShortcutPendingAction('')
+    }
+  }
+
+  async function handleRunShortcut(shortcut) {
+    setShortcutPendingAction(`run:${shortcut.id}`)
+    try {
+      await openOutlookSearch(shortcut.title)
+      setPanelError('')
+      setPanelStatus(`Copied "${shortcut.title}" and opened Outlook.`)
+    } catch {
+      setPanelError('Could not open Outlook or copy the search title.')
+    } finally {
+      setShortcutPendingAction('')
     }
   }
 
@@ -287,9 +457,34 @@ export default function StoryPanel({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">Story List</h2>
-          <p className="mt-1 text-xs text-slate-500">Switch one MVP at a time so large story lists stay readable.</p>
+          <p className="mt-1 text-xs text-slate-500">Switch between stories and saved shortcuts for the current MVP.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center rounded-full bg-slate-100 p-1" role="tablist" aria-label="Story panel sections">
+            {[
+              { key: PANEL_TABS.stories, label: 'Stories' },
+              { key: PANEL_TABS.shortcuts, label: 'Shortcuts' }
+            ].map(tab => {
+              const isActive = activePanelTab === tab.key
+
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActivePanelTab(tab.key)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{groups.length} MVPs</span>
           <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600 shadow-sm">{stories.length} stories</span>
           <button
@@ -302,13 +497,26 @@ export default function StoryPanel({
         </div>
       </div>
 
-      {localLinkError && (
+      {panelError && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          <span>{localLinkError}</span>
+          <span>{panelError}</span>
           <button
             type="button"
-            onClick={() => setLocalLinkError('')}
+            onClick={() => setPanelError('')}
             className="rounded-full border border-rose-200 px-3 py-1 text-xs font-medium transition-colors hover:bg-white"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {panelStatus && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <span>{panelStatus}</span>
+          <button
+            type="button"
+            onClick={() => setPanelStatus('')}
+            className="rounded-full border border-emerald-200 px-3 py-1 text-xs font-medium transition-colors hover:bg-white"
           >
             Dismiss
           </button>
@@ -317,7 +525,7 @@ export default function StoryPanel({
 
       {groups.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-6 text-center text-sm text-slate-500">
-          No stories yet. Add your first MVP and start dropping stories into it.
+          No stories or shortcuts yet. Add your first MVP and save the search terms you never want to memorize again.
         </div>
       ) : (
         <div className="space-y-4">
@@ -372,7 +580,7 @@ export default function StoryPanel({
                 </div>
               </div>
 
-              {activeGroup && (
+              {activeGroup && activePanelTab === PANEL_TABS.stories && (
                 <button
                   type="button"
                   aria-label={`Add to ${activeGroup.name}`}
@@ -387,8 +595,19 @@ export default function StoryPanel({
             {activeGroup && (
               <>
                 <div className="mb-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-base font-semibold text-slate-800">{activeGroup.name}</div>
-                  <p className="mt-1 text-xs text-slate-500">{activeGroup.stories.length} stories in this MVP</p>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-base font-semibold text-slate-800">{activeGroup.name}</div>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {activeGroup.stories.length} stories and {activeShortcuts.length} shortcuts in this MVP
+                      </p>
+                    </div>
+                    {activePanelTab === PANEL_TABS.shortcuts && (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                        Outlook shortcuts
+                      </span>
+                    )}
+                  </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {activeMvpFolder ? (
                       <button
@@ -424,17 +643,102 @@ export default function StoryPanel({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
-                  {activeGroup.stories.map(story => (
-                    <StoryCard
-                      key={story.id}
-                      story={story}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                      onOpenLocalLink={handleOpenLocalLink}
-                    />
-                  ))}
-                </div>
+                {activePanelTab === PANEL_TABS.stories ? (
+                  activeGroup.stories.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
+                      No stories in this MVP yet.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+                      {activeGroup.stories.map(story => (
+                        <StoryCard
+                          key={story.id}
+                          story={story}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onOpenLocalLink={handleOpenLocalLink}
+                        />
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <div className="space-y-4">
+                    {activeShortcuts.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
+                        No shortcuts yet. Save the random mailbox title here and let the button copy it for Outlook.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                        {activeShortcuts.map(shortcut => (
+                          <ShortcutCard
+                            key={shortcut.id}
+                            shortcut={shortcut}
+                            isBusy={shortcutPendingAction !== ''}
+                            onRun={handleRunShortcut}
+                            onEdit={startEditingShortcut}
+                            onDelete={handleDeleteShortcut}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSaveShortcut} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-800">
+                            {shortcutDraft.id ? 'Edit Shortcut' : 'New Shortcut'}
+                          </h3>
+                          <p className="mt-1 text-xs text-slate-500">Use a friendly label, but save the exact title you want copied to the clipboard.</p>
+                        </div>
+                        {shortcutDraft.id && (
+                          <button
+                            type="button"
+                            onClick={resetShortcutDraft}
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-1 block text-xs font-medium text-slate-600">Shortcut Name</span>
+                          <input
+                            type="text"
+                            value={shortcutDraft.label}
+                            onChange={event => setShortcutDraft(current => ({ ...current, label: event.target.value }))}
+                            placeholder="Mailing List"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="mb-1 block text-xs font-medium text-slate-600">Search Title</span>
+                          <input
+                            type="text"
+                            value={shortcutDraft.title}
+                            onChange={event => setShortcutDraft(current => ({ ...current, title: event.target.value }))}
+                            placeholder="mvp3 package notification"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button
+                          type="submit"
+                          disabled={shortcutPendingAction !== ''}
+                          className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {shortcutPendingAction === 'save'
+                            ? 'Saving…'
+                            : (shortcutDraft.id ? 'Save Shortcut' : 'Add Shortcut')}
+                        </button>
+                        <span className="text-xs text-slate-500">Clicking the shortcut button will open Outlook and leave this title on your clipboard.</span>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </>
             )}
           </section>
