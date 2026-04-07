@@ -57,3 +57,27 @@ export function getStoryLinkDisplay(link) {
     return trimmed
   }
 }
+
+export function findTailTruncatedText(text, fits) {
+  const value = text ?? ''
+  if (!value) return ''
+  if (fits(value)) return value
+
+  let low = 0
+  let high = value.length - 1
+  let best = `...${value.slice(-1)}`
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2)
+    const candidate = `...${value.slice(mid)}`
+
+    if (fits(candidate)) {
+      best = candidate
+      high = mid - 1
+    } else {
+      low = mid + 1
+    }
+  }
+
+  return best
+}

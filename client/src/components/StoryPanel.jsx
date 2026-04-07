@@ -1,19 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { openOutlookSearch, openStoryLocalLink } from '../api.js'
 import { parseStoryDescription } from '../utils/storyDescription.js'
 import { compareStories, getStoryStatusMeta } from '../utils/storyStatus.js'
-import { getStoryLinkDisplay, getStoryLinkFullText, isLocalStoryLink } from '../utils/storyLink.js'
+import { findTailTruncatedText, getStoryLinkDisplay, getStoryLinkFullText, isLocalStoryLink } from '../utils/storyLink.js'
 import { compareStoryGroups, normalizeStoryMvp } from '../utils/storyMvp.js'
 
 const PANEL_TABS = {
   stories: 'stories',
   shortcuts: 'shortcuts'
-}
-
-const RIGHT_EDGE_TRUNCATION_STYLE = {
-  direction: 'rtl',
-  textAlign: 'left',
-  unicodeBidi: 'plaintext'
 }
 
 function createShortcutDraft(shortcut = null) {
@@ -22,6 +16,63 @@ function createShortcutDraft(shortcut = null) {
     label: shortcut?.label ?? '',
     title: shortcut?.title ?? ''
   }
+}
+
+function TailPriorityText({ text, className = '' }) {
+  const containerRef = useRef(null)
+  const measureRef = useRef(null)
+  const [displayText, setDisplayText] = useState(text)
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    const measure = measureRef.current
+
+    if (!container || !measure) {
+      setDisplayText(text)
+      return
+    }
+
+    function updateDisplayText() {
+      const availableWidth = container.clientWidth
+
+      if (!availableWidth) {
+        setDisplayText(text)
+        return
+      }
+
+      const nextText = findTailTruncatedText(text, candidate => {
+        measure.textContent = candidate
+        return measure.scrollWidth <= availableWidth
+      })
+
+      setDisplayText(nextText)
+    }
+
+    updateDisplayText()
+
+    if (typeof ResizeObserver === 'undefined') {
+      return undefined
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateDisplayText()
+    })
+
+    observer.observe(container)
+
+    return () => observer.disconnect()
+  }, [text])
+
+  return (
+    <span ref={containerRef} className={`relative block max-w-full overflow-hidden whitespace-nowrap ${className}`}>
+      <span className="block">{displayText}</span>
+      <span
+        ref={measureRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute invisible whitespace-nowrap"
+      />
+    </span>
+  )
 }
 
 function DescriptionSegment({ segment, onOpenLocalLink }) {
@@ -131,26 +182,28 @@ function StoryCard({ story, onEdit, onDelete, onOpenLocalLink }) {
           </span>
         </div>
         {localLink ? (
-          <button
-            type="button"
-            title={fullLinkText}
-            onClick={() => onOpenLocalLink(story.link, 'reveal')}
-            className="block max-w-full truncate text-left font-mono text-xs text-slate-500 transition-colors hover:text-slate-700"
-          >
-            {displayLink}
-          </button>
+          <div className="min-w-0">
+            <button
+              type="button"
+              title={fullLinkText}
+              onClick={() => onOpenLocalLink(story.link, 'reveal')}
+              className="inline-block max-w-full overflow-hidden rounded-full bg-white/70 px-2 py-1 text-left text-[11px] font-mono text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800"
+            >
+              <span className="block truncate">{displayLink}</span>
+            </button>
+          </div>
         ) : (
-          <a
-            href={story.link}
-            target="_blank"
-            rel="noreferrer"
-            title={fullLinkText}
-            className="block max-w-full overflow-hidden text-xs text-slate-500 transition-colors hover:text-slate-700"
-          >
-            <span className="block truncate" style={RIGHT_EDGE_TRUNCATION_STYLE}>
-              {displayLink}
-            </span>
-          </a>
+          <div className="min-w-0">
+            <a
+              href={story.link}
+              target="_blank"
+              rel="noreferrer"
+              title={fullLinkText}
+              className="inline-block max-w-full overflow-hidden rounded-full bg-white/70 px-2 py-1 text-[11px] font-mono text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800"
+            >
+              <TailPriorityText text={displayLink} />
+            </a>
+          </div>
         )}
         <DescriptionBlock description={story.description} onOpenLocalLink={onOpenLocalLink} />
       </div>

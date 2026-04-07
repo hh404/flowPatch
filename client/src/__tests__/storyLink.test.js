@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getStoryLinkDisplay, getStoryLinkFullText, isLocalStoryLink } from '../utils/storyLink.js'
+import { findTailTruncatedText, getStoryLinkDisplay, getStoryLinkFullText, isLocalStoryLink } from '../utils/storyLink.js'
 
 describe('storyLink', () => {
   it('detects local filesystem paths', () => {
@@ -22,5 +22,13 @@ describe('storyLink', () => {
 
   it('keeps the full path available for tooltips and actions', () => {
     expect(getStoryLinkFullText('file:///Users/hans/mockups/demo%20v2.html')).toBe('/Users/hans/mockups/demo v2.html')
+  })
+
+  it('truncates from the left when only the tail fits', () => {
+    const text = 'translate.google.com/?sl=en&tl=zh-CN&text=hang%20up&op=translate'
+    const fitted = findTailTruncatedText(text, candidate => candidate.length <= 28)
+
+    expect(fitted).toContain('hang%20up&op=translate')
+    expect(fitted.startsWith('...')).toBe(true)
   })
 })
