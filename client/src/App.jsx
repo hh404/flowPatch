@@ -45,7 +45,18 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
     <header className="border-b border-slate-800 bg-slate-900 px-4 py-4 text-white shadow">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-lg font-bold tracking-tight">FlowPatch</span>
+          <div className="flex items-center gap-3 rounded-2xl bg-white/[0.06] px-3 py-2 ring-1 ring-white/10">
+            <img
+              src="/flowpatch-logo.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-10 w-10 rounded-xl shadow-[0_12px_32px_rgba(15,23,42,0.35)]"
+            />
+            <div className="leading-none">
+              <span className="block text-lg font-semibold tracking-tight text-white">FlowPatch</span>
+              <span className="mt-1 block text-[10px] uppercase tracking-[0.34em] text-cyan-100/70">Flow Control</span>
+            </div>
+          </div>
           <span className="rounded-full bg-white/10 px-2 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
             {currentPage === PAGES.board ? 'Task Board' : 'Story List'}
           </span>

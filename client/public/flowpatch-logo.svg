@@ -1,0 +1,39 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flowpatch-bg" x1="18" y1="12" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="0.52" stop-color="#172554"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="flowpatch-stream" x1="24" y1="24" x2="104" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#67E8F9"/>
+      <stop offset="0.5" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="flowpatch-patch" x1="30" y1="22" x2="94" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#CBD5E1"/>
+    </linearGradient>
+    <filter id="flowpatch-glow" x="10" y="10" width="108" height="108" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="6" result="effect1_foregroundBlur"/>
+    </filter>
+  </defs>
+
+  <rect x="8" y="8" width="112" height="112" rx="30" fill="url(#flowpatch-bg)"/>
+  <rect x="14" y="14" width="100" height="100" rx="24" stroke="white" stroke-opacity="0.09" stroke-width="2"/>
+
+  <g filter="url(#flowpatch-glow)" opacity="0.4">
+    <path d="M26 82C36 72 44 66 58 66H76C88 66 94 58 102 46" stroke="url(#flowpatch-stream)" stroke-width="12" stroke-linecap="round"/>
+  </g>
+
+  <path d="M50 24C50 20.6863 52.6863 18 56 18H72C75.3137 18 78 20.6863 78 24V42H96C99.3137 42 102 44.6863 102 48V64C102 67.3137 99.3137 70 96 70H78V88C78 91.3137 75.3137 94 72 94H56C52.6863 94 50 91.3137 50 88V70H32C28.6863 70 26 67.3137 26 64V48C26 44.6863 28.6863 42 32 42H50V24Z" fill="url(#flowpatch-patch)"/>
+
+  <path d="M30 82C40 72 48 66 62 66H78C89 66 95 59 104 46" stroke="url(#flowpatch-stream)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M40 46H88" stroke="#0F172A" stroke-opacity="0.14" stroke-width="4" stroke-linecap="round"/>
+  <path d="M64 30V82" stroke="#0F172A" stroke-opacity="0.14" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="30" cy="82" r="6" fill="#67E8F9"/>
+  <circle cx="104" cy="46" r="6" fill="#F59E0B"/>
+</svg>
