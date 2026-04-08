@@ -11,6 +11,12 @@ vi.mock('../api.js', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: {
+      writeText: vi.fn(() => Promise.resolve())
+    }
+  })
 })
 
 const stories = [
@@ -19,6 +25,7 @@ const stories = [
     mvp: 'Core Platform MVP',
     title: 'Implement FlowPatch board',
     link: 'https://dev.azure.com/example/story-1',
+    branch: 'feature/flowpatch-board',
     folder: '/Users/hans/workspaces/core-platform/implement-flowpatch-board',
     description: 'Draft in [spec](/Users/hans/specs/flowpatch.md) and [tracker](https://example.com/spec)',
     status: 'Ready for Develop',
@@ -76,6 +83,7 @@ describe('StoryPanel', () => {
     expect(screen.getAllByText('Description')).toHaveLength(2)
     expect(screen.getByRole('button', { name: /open folder for core platform mvp/i })).toHaveTextContent('MVP Folder: core-platform')
     expect(screen.getByRole('button', { name: /open folder for implement flowpatch board/i })).toHaveTextContent('Folder: implement-flowpatch-board')
+    expect(screen.getByTitle('feature/flowpatch-board')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'tracker' })).toHaveAttribute('href', 'https://example.com/spec')
     expect(screen.queryByText('Polish story tracker')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Implement FlowPatch board' })).toHaveAttribute('href', stories[0].link)
@@ -220,6 +228,26 @@ describe('StoryPanel', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: /edit story implement flowpatch board/i }))
     expect(onEdit).toHaveBeenCalledWith(stories[0])
+  })
+
+  it('copies the branch name when the branch chip is clicked', async () => {
+    render(
+      <StoryPanel
+        stories={stories}
+        mvpFolders={mvpFolders}
+        onAdd={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onSetMvpFolder={vi.fn()}
+        onClearMvpFolder={vi.fn()}
+        onSetMvpShortcuts={vi.fn()}
+      />
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /copy branch for implement flowpatch board/i }))
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('feature/flowpatch-board')
+    expect(screen.getByText('Copied branch "feature/flowpatch-board".')).toBeInTheDocument()
   })
 
   it('opens outlook shortcuts from the shortcuts tab', async () => {

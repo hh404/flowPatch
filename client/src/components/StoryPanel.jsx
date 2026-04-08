@@ -18,6 +18,28 @@ function createShortcutDraft(shortcut = null) {
   }
 }
 
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'absolute'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  try {
+    const copied = document.execCommand('copy')
+    if (!copied) throw new Error('copy failed')
+  } finally {
+    document.body.removeChild(textarea)
+  }
+}
+
 function TailPriorityText({ text, className = '' }) {
   const containerRef = useRef(null)
   const measureRef = useRef(null)
@@ -144,11 +166,12 @@ function DescriptionBlock({ description, onOpenLocalLink }) {
   )
 }
 
-function StoryCard({ story, onEdit, onDelete, onOpenLocalLink }) {
+function StoryCard({ story, onEdit, onDelete, onOpenLocalLink, onCopyBranch }) {
   const statusMeta = getStoryStatusMeta(story.status)
   const localLink = isLocalStoryLink(story.link)
   const displayLink = getStoryLinkDisplay(story.link)
   const fullLinkText = getStoryLinkFullText(story.link)
+  const branch = story.branch?.trim() ?? ''
   const folderPath = story.folder?.trim() ?? ''
   const folderDisplay = folderPath ? getStoryLinkDisplay(folderPath) : ''
   const fullFolderText = folderPath ? getStoryLinkFullText(folderPath) : ''
@@ -203,6 +226,20 @@ function StoryCard({ story, onEdit, onDelete, onOpenLocalLink }) {
             >
               <TailPriorityText text={displayLink} />
             </a>
+          </div>
+        )}
+        {branch && (
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              title={branch}
+              aria-label={`Copy branch for ${story.title}`}
+              onClick={() => onCopyBranch(branch)}
+              className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-full bg-violet-50 px-2 py-1 text-[11px] text-violet-700 transition-colors hover:bg-violet-100"
+            >
+              <span className="shrink-0 font-semibold uppercase tracking-wide text-violet-500">Branch</span>
+              <span className="min-w-0 truncate font-mono">{branch}</span>
+            </button>
           </div>
         )}
         <DescriptionBlock description={story.description} onOpenLocalLink={onOpenLocalLink} />
@@ -387,6 +424,16 @@ export default function StoryPanel({
     setShortcutDraft(createShortcutDraft())
   }, [activeGroup?.name])
 
+  useEffect(() => {
+    if (!panelStatus) return undefined
+
+    const timer = window.setTimeout(() => {
+      setPanelStatus('')
+    }, 2200)
+
+    return () => window.clearTimeout(timer)
+  }, [panelStatus])
+
   async function handleOpenLocalLink(link, action) {
     try {
       await openStoryLocalLink(link, action)
@@ -396,6 +443,16 @@ export default function StoryPanel({
         ? 'Could not reveal the local path. Check that the file or folder still exists.'
         : 'Could not open the local path. Check that the file or folder still exists.'
       )
+    }
+  }
+
+  async function handleCopyBranch(branch) {
+    try {
+      await copyTextToClipboard(branch)
+      setPanelError('')
+      setPanelStatus(`Copied branch "${branch}".`)
+    } catch {
+      setPanelError('Could not copy the branch name.')
     }
   }
 
@@ -564,15 +621,14 @@ export default function StoryPanel({
       )}
 
       {panelStatus && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          <span>{panelStatus}</span>
-          <button
-            type="button"
-            onClick={() => setPanelStatus('')}
-            className="rounded-full border border-emerald-200 px-3 py-1 text-xs font-medium transition-colors hover:bg-white"
+        <div className="pointer-events-none fixed right-4 top-4 z-[60]">
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded-2xl border border-emerald-200 bg-emerald-50/95 px-4 py-3 text-sm text-emerald-700 shadow-lg shadow-emerald-900/10 backdrop-blur"
           >
-            Dismiss
-          </button>
+            {panelStatus}
+          </div>
         </div>
       )}
 
@@ -710,6 +766,7 @@ export default function StoryPanel({
                           onEdit={onEdit}
                           onDelete={onDelete}
                           onOpenLocalLink={handleOpenLocalLink}
+                          onCopyBranch={handleCopyBranch}
                         />
                       ))}
                     </div>

@@ -5,7 +5,7 @@ import { readStories, writeStories } from '../storyStore.js'
 
 const router = Router()
 const DEFAULT_MVP_NAME = 'Current MVP'
-const ALLOWED_FIELDS = ['mvp', 'title', 'link', 'folder', 'description', 'status']
+const ALLOWED_FIELDS = ['mvp', 'title', 'link', 'branch', 'folder', 'description', 'status']
 
 function normalizeRequiredText(value) {
   return value?.trim() ?? ''
@@ -19,6 +19,7 @@ function normalizeStory(story) {
   return {
     ...story,
     mvp: normalizeRequiredText(story.mvp) || DEFAULT_MVP_NAME,
+    branch: normalizeOptionalText(story.branch),
     folder: normalizeOptionalText(story.folder),
     description: normalizeOptionalText(story.description)
   }
@@ -38,6 +39,7 @@ router.post('/', async (req, res) => {
     const mvp = normalizeRequiredText(req.body.mvp) || DEFAULT_MVP_NAME
     const title = normalizeRequiredText(req.body.title)
     const link = normalizeRequiredText(req.body.link)
+    const branch = normalizeOptionalText(req.body.branch)
     const folder = normalizeOptionalText(req.body.folder)
     const description = normalizeOptionalText(req.body.description)
     const status = normalizeRequiredText(req.body.status)
@@ -52,6 +54,7 @@ router.post('/', async (req, res) => {
       id: uuidv4(),
       title,
       link,
+      branch,
       folder,
       description,
       status,
@@ -129,6 +132,10 @@ router.patch('/:id', async (req, res) => {
     if (updates.link !== undefined) {
       updates.link = normalizeRequiredText(updates.link)
       if (!updates.link) return res.status(400).json({ error: 'link required' })
+    }
+
+    if (updates.branch !== undefined) {
+      updates.branch = normalizeOptionalText(updates.branch)
     }
 
     if (updates.folder !== undefined) {

@@ -8,6 +8,7 @@ const mockStories = [
     mvp: 'Core Platform MVP',
     title: 'MVP board',
     link: 'https://dev.azure.com/example/story-1',
+    branch: 'feature/mvp-board',
     folder: '/Users/hans/workspaces/core-platform/mvp-board',
     description: 'Story context',
     status: 'Ready for Develop',
@@ -32,6 +33,7 @@ describe('useStories', () => {
     await waitFor(() => expect(result.current.stories).toHaveLength(1))
     expect(result.current.stories[0].title).toBe('MVP board')
     expect(result.current.stories[0].mvp).toBe('Core Platform MVP')
+    expect(result.current.stories[0].branch).toBe('feature/mvp-board')
     expect(result.current.stories[0].folder).toBe('/Users/hans/workspaces/core-platform/mvp-board')
     expect(result.current.stories[0].description).toBe('Story context')
   })
@@ -49,6 +51,7 @@ describe('useStories', () => {
         mvp: 'Core Platform MVP',
         title: 'MVP board',
         link: 'https://dev.azure.com/example/story-1',
+        branch: 'feature/mvp-board',
         folder: '/Users/hans/workspaces/core-platform/mvp-board',
         description: 'Story context',
         status: 'Ready for Develop'
@@ -60,7 +63,14 @@ describe('useStories', () => {
   })
 
   it('updateStory patches and replaces story in state', async () => {
-    const updated = { ...mockStories[0], mvp: 'Search MVP', folder: '/Users/hans/workspaces/search/mvp-board', description: 'Updated context', status: 'In Review' }
+    const updated = {
+      ...mockStories[0],
+      mvp: 'Search MVP',
+      branch: 'release/search-board',
+      folder: '/Users/hans/workspaces/search/mvp-board',
+      description: 'Updated context',
+      status: 'In Review'
+    }
     global.fetch
       .mockResolvedValueOnce({ ok: true, json: async () => mockStories })
       .mockResolvedValueOnce({ ok: true, json: async () => updated })
@@ -69,11 +79,18 @@ describe('useStories', () => {
     await waitFor(() => expect(result.current.stories).toHaveLength(1))
 
     await act(async () => {
-      await result.current.updateStory('s-1', { mvp: 'Search MVP', folder: '/Users/hans/workspaces/search/mvp-board', description: 'Updated context', status: 'In Review' })
+      await result.current.updateStory('s-1', {
+        mvp: 'Search MVP',
+        branch: 'release/search-board',
+        folder: '/Users/hans/workspaces/search/mvp-board',
+        description: 'Updated context',
+        status: 'In Review'
+      })
     })
 
     expect(result.current.stories[0].status).toBe('In Review')
     expect(result.current.stories[0].mvp).toBe('Search MVP')
+    expect(result.current.stories[0].branch).toBe('release/search-board')
     expect(result.current.stories[0].folder).toBe('/Users/hans/workspaces/search/mvp-board')
     expect(result.current.stories[0].description).toBe('Updated context')
   })

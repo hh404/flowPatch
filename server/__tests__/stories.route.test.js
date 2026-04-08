@@ -69,6 +69,7 @@ try {
       mvp: 'Core Platform MVP',
       title: 'FlowPatch MVP shell',
       link: 'https://dev.azure.com/example/story-1',
+      branch: 'feature/flowpatch-shell',
       folder: join(tmpDir, 'core-platform-mvp', 'flowpatch-mvp-shell'),
       description: 'Half-baked state with [mockup](/tmp/mockup.html)',
       status: 'In Progress'
@@ -79,6 +80,7 @@ try {
     assert.strictEqual(body.mvp, 'Core Platform MVP', 'POST mvp')
     assert.strictEqual(body.title, 'FlowPatch MVP shell', 'POST title')
     assert.strictEqual(body.link, 'https://dev.azure.com/example/story-1', 'POST link')
+    assert.strictEqual(body.branch, 'feature/flowpatch-shell', 'POST branch')
     assert.strictEqual(body.folder, join(tmpDir, 'core-platform-mvp', 'flowpatch-mvp-shell'), 'POST folder')
     assert.strictEqual(body.description, 'Half-baked state with [mockup](/tmp/mockup.html)', 'POST description')
     assert.strictEqual(body.status, 'In Progress', 'POST status')
@@ -101,6 +103,7 @@ try {
       mvp: 'Search MVP',
       status: 'Blocked',
       link: 'https://dev.azure.com/example/story-1-updated',
+      branch: 'release/search-shell',
       folder: join(tmpDir, 'search-mvp', 'flowpatch-mvp-shell'),
       description: 'Moved, but local notes still exist'
     })
@@ -109,6 +112,7 @@ try {
     assert.strictEqual(body.mvp, 'Search MVP', 'PATCH updates mvp')
     assert.strictEqual(body.status, 'Blocked', 'PATCH updates status')
     assert.strictEqual(body.link, 'https://dev.azure.com/example/story-1-updated', 'PATCH updates link')
+    assert.strictEqual(body.branch, 'release/search-shell', 'PATCH updates branch')
     assert.strictEqual(body.folder, join(tmpDir, 'search-mvp', 'flowpatch-mvp-shell'), 'PATCH updates folder')
     assert.strictEqual(body.description, 'Moved, but local notes still exist', 'PATCH updates description')
   }
@@ -132,6 +136,7 @@ try {
       id: 'hacked-id',
       createdAt: '1970-01-01T00:00:00.000Z',
       mvp: 'Release MVP',
+      branch: 'release/ship-it',
       folder: join(tmpDir, 'release-mvp', 'whitelist-story'),
       description: 'Ship it',
       status: 'Done'
@@ -141,6 +146,7 @@ try {
     assert.strictEqual(body.id, originalId, 'PATCH ignores id')
     assert.strictEqual(body.createdAt, originalCreatedAt, 'PATCH ignores createdAt')
     assert.strictEqual(body.mvp, 'Release MVP', 'PATCH updates allowed mvp field')
+    assert.strictEqual(body.branch, 'release/ship-it', 'PATCH updates allowed branch field')
     assert.strictEqual(body.folder, join(tmpDir, 'release-mvp', 'whitelist-story'), 'PATCH updates allowed folder field')
     assert.strictEqual(body.description, 'Ship it', 'PATCH updates allowed description field')
     assert.strictEqual(body.status, 'Done', 'PATCH updates allowed fields')

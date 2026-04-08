@@ -16,6 +16,7 @@ const mockStories = [
     mvp: 'Core Platform MVP',
     title: 'Story tracker',
     link: 'https://dev.azure.com/example/story-1',
+    branch: 'feature/story-tracker',
     folder: '/Users/hans/workspaces/core-platform/story-tracker',
     description: 'Draft lives in [proto](/Users/hans/mockups/proto.html)',
     status: 'Ready for Develop',
@@ -46,6 +47,7 @@ beforeEach(() => {
         mvp: 'Search MVP',
         title: 'New story',
         link: 'https://dev.azure.com/example/story-2',
+        branch: 'feature/search-story',
         folder: '/Users/hans/workspaces/search/new-story',
         description: 'Half built with [demo](/Users/hans/mockups/demo.html)',
         status: 'In Review',
@@ -164,6 +166,7 @@ describe('App', () => {
     await userEvent.type(screen.getByLabelText(/^mvp$/i), 'Search MVP')
     await userEvent.type(screen.getByLabelText(/title/i), 'New story')
     await userEvent.type(screen.getByLabelText(/link/i), 'https://dev.azure.com/example/story-2')
+    await userEvent.type(screen.getByLabelText(/^branch/i), 'feature/search-story')
     fireEvent.change(screen.getByLabelText(/^description$/i), {
       target: { value: 'Half built with [demo](/Users/hans/mockups/demo.html)' }
     })
@@ -178,6 +181,7 @@ describe('App', () => {
           mvp: 'Search MVP',
           title: 'New story',
           link: 'https://dev.azure.com/example/story-2',
+          branch: 'feature/search-story',
           folder: '',
           description: 'Half built with [demo](/Users/hans/mockups/demo.html)',
           status: 'In Review'

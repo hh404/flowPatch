@@ -9,6 +9,7 @@ export function normalizeStory(story) {
   return {
     ...story,
     mvp: normalizeStoryMvp(story?.mvp),
+    branch: typeof story?.branch === 'string' ? story.branch.trim() : '',
     folder: typeof story?.folder === 'string' ? story.folder.trim() : '',
     description: typeof story?.description === 'string' ? story.description.trim() : ''
   }

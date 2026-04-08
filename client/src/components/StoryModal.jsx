@@ -12,6 +12,7 @@ function buildInitialState(story) {
     mvp: normalizeStoryMvp(story?.mvp),
     title: story?.title ?? '',
     link: story?.link ?? '',
+    branch: story?.branch ?? '',
     folder: story?.folder ?? '',
     description: normalizeStoryDescription(story?.description),
     status: STORY_STATUS_OPTIONS.includes(status) ? status : DEFAULT_STORY_STATUS
@@ -54,12 +55,13 @@ export default function StoryModal({ mode = 'create', initialStory, mvpOptions =
     const mvp = form.mvp.trim()
     const title = form.title.trim()
     const link = form.link.trim()
+    const branch = form.branch.trim()
     const folder = form.folder.trim()
     const description = normalizeStoryDescription(form.description)
     const status = form.status.trim()
     if (!mvp || !title || !link || !status) return
 
-    onConfirm({ mvp, title, link, folder, description, status })
+    onConfirm({ mvp, title, link, branch, folder, description, status })
   }
 
   async function handleChooseFolder() {
@@ -133,6 +135,20 @@ export default function StoryModal({ mode = 'create', initialStory, mvpOptions =
             />
             <p className="mt-1 text-xs text-gray-500">
               Supports web URLs plus local file paths like `file://`, `/Users/...`, `~/...`, `./...`.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="story-branch" className="mb-1 block text-xs font-medium text-gray-500">Branch <span className="font-normal text-gray-400">(optional)</span></label>
+            <input
+              id="story-branch"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              value={form.branch}
+              onChange={event => setForm(current => ({ ...current, branch: event.target.value }))}
+              placeholder="feature/mvp3-package-fix"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Optional. Use this when the actual git branch does not match the ticket number or title.
             </p>
           </div>
 

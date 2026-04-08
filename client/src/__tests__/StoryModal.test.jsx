@@ -12,6 +12,7 @@ const baseStory = {
   mvp: 'Core Platform MVP',
   title: 'Story tracker',
   link: 'https://dev.azure.com/example/story-1',
+  branch: 'feature/story-tracker',
   folder: '/Users/hans/workspaces/core-platform/story-tracker',
   status: 'In Progress'
 }
@@ -70,12 +71,14 @@ describe('StoryModal', () => {
     await userEvent.type(screen.getByLabelText(/^mvp$/i), 'Core Platform MVP')
     await userEvent.type(screen.getByLabelText(/title/i), 'Folder story')
     await userEvent.type(screen.getByLabelText(/link or path/i), 'https://example.com/story')
+    await userEvent.type(screen.getByLabelText(/^branch/i), 'feature/folder-story')
     await userEvent.click(screen.getByRole('button', { name: /choose folder/i }))
     await userEvent.selectOptions(screen.getByLabelText(/status/i), 'In Progress')
     await userEvent.click(screen.getByRole('button', { name: /create story/i }))
 
     expect(selectStoryLocalFolder).toHaveBeenCalledWith('')
     expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({
+      branch: 'feature/folder-story',
       folder: '/Users/hans/workspaces/core-platform/folder-story'
     }))
   })
