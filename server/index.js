@@ -5,6 +5,7 @@ import { join, dirname } from 'path'
 import taskRoutes from './routes/tasks.js'
 import mvpRoutes from './routes/mvps.js'
 import storyRoutes from './routes/stories.js'
+import testAccountRoutes from './routes/testAccounts.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT ?? 47291
@@ -18,6 +19,7 @@ export function createApp() {
   app.use('/api/tasks', taskRoutes)
   app.use('/api/mvps', mvpRoutes)
   app.use('/api/stories', storyRoutes)
+  app.use('/api/test-accounts', testAccountRoutes)
 
   // Serve built frontend in production
   if (process.env.NODE_ENV === 'production') {

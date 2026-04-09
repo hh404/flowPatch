@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTasks } from './hooks/useTasks.js'
 import { useMvpFolders } from './hooks/useMvpFolders.js'
 import { useStories } from './hooks/useStories.js'
+import { useTestAccounts } from './hooks/useTestAccounts.js'
 import { useTaskReminders } from './hooks/useTaskReminders.js'
 import { selectStoryLocalFolder } from './api.js'
 import QuickInput from './components/QuickInput.jsx'
@@ -9,6 +10,8 @@ import Column from './components/Column.jsx'
 import TaskModal from './components/TaskModal.jsx'
 import StoryPanel from './components/StoryPanel.jsx'
 import StoryModal from './components/StoryModal.jsx'
+import TestAccountModal from './components/TestAccountModal.jsx'
+import TestAccountPanel from './components/TestAccountPanel.jsx'
 import { compareTasksByPriority, normalizePriority } from './utils/priority.js'
 import { normalizeTaskStatus } from './utils/taskStatus.js'
 import { plusHours } from './utils/reminders.js'
@@ -23,23 +26,34 @@ const COLUMNS = [
 
 const PAGES = {
   board: 'board',
-  stories: 'stories'
+  stories: 'stories',
+  accounts: 'accounts'
 }
 
 function getPageFromHash() {
   const hash = window.location.hash.replace(/^#/, '').trim().toLowerCase()
-  return hash === PAGES.stories ? PAGES.stories : PAGES.board
+  if (hash === PAGES.stories) return PAGES.stories
+  if (hash === PAGES.accounts) return PAGES.accounts
+  return PAGES.board
 }
 
 function getPageHash(page) {
-  return page === PAGES.stories ? '#stories' : '#board'
+  if (page === PAGES.stories) return '#stories'
+  if (page === PAGES.accounts) return '#accounts'
+  return '#board'
 }
 
 function ShellHeader({ currentPage, onNavigate, summary }) {
   const tabs = [
     { key: PAGES.board, label: 'Task Board' },
-    { key: PAGES.stories, label: 'Story List' }
+    { key: PAGES.stories, label: 'Story List' },
+    { key: PAGES.accounts, label: 'Test Accounts' }
   ]
+  const currentPageLabel = currentPage === PAGES.stories
+    ? 'Story List'
+    : currentPage === PAGES.accounts
+      ? 'Test Accounts'
+      : 'Task Board'
 
   return (
     <header className="border-b border-slate-800 bg-slate-900 px-4 py-4 text-white shadow">
@@ -58,7 +72,7 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
             </div>
           </div>
           <span className="rounded-full bg-white/10 px-2 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
-            {currentPage === PAGES.board ? 'Task Board' : 'Story List'}
+            {currentPageLabel}
           </span>
           <nav className="flex items-center gap-2" aria-label="Primary">
             {tabs.map(tab => {
@@ -91,6 +105,73 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
         </div>
       </div>
     </header>
+  )
+}
+
+function TestAccountsPage({ currentPage, onNavigate }) {
+  const {
+    testAccounts,
+    loading,
+    error,
+    addTestAccount,
+    updateTestAccount,
+    deleteTestAccount
+  } = useTestAccounts()
+  const [editor, setEditor] = useState(null)
+  const envCount = new Set(testAccounts.map(testAccount => testAccount.env)).size
+  const simulatorCount = testAccounts.filter(testAccount => testAccount.simulator).length
+
+  if (loading) return <div className="flex h-screen items-center justify-center bg-slate-100 text-gray-400">Loading…</div>
+  if (error) return <div className="flex h-screen items-center justify-center bg-slate-100 text-red-400">Error loading data</div>
+
+  async function handleConfirm(data) {
+    if (editor?.mode === 'edit') {
+      await updateTestAccount(editor.testAccount.id, data)
+    } else {
+      await addTestAccount(data)
+    }
+
+    setEditor(null)
+  }
+
+  function openCreateEditor() {
+    setEditor({ mode: 'create', testAccount: null })
+  }
+
+  function openEditEditor(testAccount) {
+    setEditor({ mode: 'edit', testAccount })
+  }
+
+  return (
+    <div className="flex h-screen flex-col bg-slate-100 font-sans text-slate-900">
+      <ShellHeader
+        currentPage={currentPage}
+        onNavigate={onNavigate}
+        summary={[
+          { label: `Envs ${envCount}` },
+          { label: `Accounts ${testAccounts.length}` },
+          { label: `Simulators ${simulatorCount}` }
+        ]}
+      />
+
+      <main className="flex-1 overflow-auto p-4">
+        <TestAccountPanel
+          testAccounts={testAccounts}
+          onAdd={openCreateEditor}
+          onEdit={openEditEditor}
+          onDelete={deleteTestAccount}
+        />
+      </main>
+
+      {editor && (
+        <TestAccountModal
+          mode={editor.mode}
+          initialTestAccount={editor.testAccount}
+          onConfirm={handleConfirm}
+          onClose={() => setEditor(null)}
+        />
+      )}
+    </div>
   )
 }
 
@@ -374,12 +455,18 @@ export default function App() {
   }, [])
 
   function navigateTo(page) {
-    const nextPage = page === PAGES.stories ? PAGES.stories : PAGES.board
+    const nextPage = Object.values(PAGES).includes(page) ? page : PAGES.board
     setCurrentPage(nextPage)
     window.location.hash = getPageHash(nextPage)
   }
 
-  return currentPage === PAGES.stories
-    ? <StoriesPage currentPage={currentPage} onNavigate={navigateTo} />
-    : <BoardPage currentPage={currentPage} onNavigate={navigateTo} />
+  if (currentPage === PAGES.stories) {
+    return <StoriesPage currentPage={currentPage} onNavigate={navigateTo} />
+  }
+
+  if (currentPage === PAGES.accounts) {
+    return <TestAccountsPage currentPage={currentPage} onNavigate={navigateTo} />
+  }
+
+  return <BoardPage currentPage={currentPage} onNavigate={navigateTo} />
 }

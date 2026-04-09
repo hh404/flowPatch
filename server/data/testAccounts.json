@@ -1,0 +1,22 @@
+[
+  {
+    "id": "bacd1d18-6763-4e07-ad40-ecefedf1aa3e",
+    "env": "oat",
+    "account": "test1",
+    "password": "abc123",
+    "note": "ww",
+    "simulator": "16",
+    "createdAt": "2026-04-09T13:05:15.437Z",
+    "updatedAt": "2026-04-09T13:05:15.437Z"
+  },
+  {
+    "id": "48f7becb-e7ff-40e6-ab8c-3cf385119cd5",
+    "env": "sit",
+    "account": "t",
+    "password": "h",
+    "note": "",
+    "simulator": "",
+    "createdAt": "2026-04-09T13:07:40.960Z",
+    "updatedAt": "2026-04-09T13:07:40.960Z"
+  }
+]

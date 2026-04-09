@@ -25,6 +25,19 @@ const mockStories = [
   }
 ]
 
+const mockTestAccounts = [
+  {
+    id: 'account-1',
+    env: 'staging',
+    account: 'qa.flowpatch@example.com',
+    password: 'Secret123!',
+    note: 'Use for smoke tests',
+    simulator: 'iPhone 16 Pro',
+    createdAt: '',
+    updatedAt: '2026-04-05T11:00:00.000Z'
+  }
+]
+
 function jsonResponse(body) {
   return Promise.resolve({ ok: true, json: async () => body })
 }
@@ -39,6 +52,7 @@ beforeEach(() => {
       { name: 'Core Platform MVP', folder: '/Users/hans/workspaces/core-platform' }
     ])
     if (url === '/api/stories' && method === 'GET') return jsonResponse(mockStories)
+    if (url === '/api/test-accounts' && method === 'GET') return jsonResponse(mockTestAccounts)
     if (url === '/api/tasks' && method === 'POST') return jsonResponse(mockTasks[0])
     if (url === '/api/tasks/1' && method === 'PATCH') return jsonResponse({ ...mockTasks[0], status: 'doing' })
     if (url === '/api/stories' && method === 'POST') {
@@ -51,6 +65,18 @@ beforeEach(() => {
         folder: '/Users/hans/workspaces/search/new-story',
         description: 'Half built with [demo](/Users/hans/mockups/demo.html)',
         status: 'In Review',
+        createdAt: '',
+        updatedAt: ''
+      })
+    }
+    if (url === '/api/test-accounts' && method === 'POST') {
+      return jsonResponse({
+        id: 'account-2',
+        env: 'prod',
+        account: 'prod.flowpatch@example.com',
+        password: 'Prod123!',
+        note: 'Use for prod smoke tests',
+        simulator: 'iPhone 16',
         createdAt: '',
         updatedAt: ''
       })
@@ -85,6 +111,17 @@ describe('App', () => {
     expect(screen.getByText('Story tracker')).toBeInTheDocument()
     expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Inbox' })).not.toBeInTheDocument()
+  })
+
+  it('navigates to the test accounts page and renders accounts there', async () => {
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Wait for pipeline')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'Test Accounts' }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: /test accounts/i })).toBeInTheDocument())
+
+    expect(screen.getAllByText('qa.flowpatch@example.com').length).toBeGreaterThan(0)
+    expect(screen.getByText('iPhone 16 Pro')).toBeInTheDocument()
+    expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
   })
 
   it('adds a task via QuickInput', async () => {
@@ -185,6 +222,34 @@ describe('App', () => {
           folder: '',
           description: 'Half built with [demo](/Users/hans/mockups/demo.html)',
           status: 'In Review'
+        })
+      })
+    ))
+  })
+
+  it('creates a test account from the accounts page', async () => {
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Wait for pipeline')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'Test Accounts' }))
+    await waitFor(() => expect(screen.getAllByText('qa.flowpatch@example.com').length).toBeGreaterThan(0))
+
+    await userEvent.click(screen.getByRole('button', { name: /^add account$/i }))
+    await userEvent.type(screen.getByPlaceholderText('dev / qa / staging / prod'), 'prod')
+    await userEvent.type(screen.getByLabelText(/^account$/i), 'prod.flowpatch@example.com')
+    await userEvent.type(screen.getByLabelText(/^password$/i), 'Prod123!')
+    await userEvent.type(screen.getByLabelText(/simulator marker/i), 'iPhone 16')
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      '/api/test-accounts',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          env: 'prod',
+          account: 'prod.flowpatch@example.com',
+          password: 'Prod123!',
+          note: '',
+          simulator: 'iPhone 16'
         })
       })
     ))

@@ -1,6 +1,7 @@
 const BASE = '/api/tasks'
 const MVPS_BASE = '/api/mvps'
 const STORIES_BASE = '/api/stories'
+const TEST_ACCOUNTS_BASE = '/api/test-accounts'
 
 export async function fetchTasks() {
   const res = await fetch(BASE)
@@ -116,4 +117,35 @@ export async function selectStoryLocalFolder(currentPath = '') {
 
   if (!res.ok) throw new Error('select local story folder failed')
   return res.json()
+}
+
+export async function fetchTestAccounts() {
+  const res = await fetch(TEST_ACCOUNTS_BASE)
+  if (!res.ok) throw new Error('fetch test accounts failed')
+  return res.json()
+}
+
+export async function createTestAccount(data) {
+  const res = await fetch(TEST_ACCOUNTS_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  if (!res.ok) throw new Error('create test account failed')
+  return res.json()
+}
+
+export async function patchTestAccount(id, data) {
+  const res = await fetch(`${TEST_ACCOUNTS_BASE}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  if (!res.ok) throw new Error('patch test account failed')
+  return res.json()
+}
+
+export async function removeTestAccount(id) {
+  const res = await fetch(`${TEST_ACCOUNTS_BASE}/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('delete test account failed')
 }
