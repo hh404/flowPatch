@@ -3,10 +3,14 @@ import { useTasks } from './hooks/useTasks.js'
 import { useMvpFolders } from './hooks/useMvpFolders.js'
 import { useStories } from './hooks/useStories.js'
 import { useTestAccounts } from './hooks/useTestAccounts.js'
+import { useReplyTemplates } from './hooks/useReplyTemplates.js'
 import { useTaskReminders } from './hooks/useTaskReminders.js'
 import { selectStoryLocalFolder } from './api.js'
 import QuickInput from './components/QuickInput.jsx'
 import Column from './components/Column.jsx'
+import ReplyTemplateCategoryModal from './components/ReplyTemplateCategoryModal.jsx'
+import ReplyTemplateReplyModal from './components/ReplyTemplateReplyModal.jsx'
+import ReplyTemplatesPanel from './components/ReplyTemplatesPanel.jsx'
 import TaskModal from './components/TaskModal.jsx'
 import StoryPanel from './components/StoryPanel.jsx'
 import StoryModal from './components/StoryModal.jsx'
@@ -27,19 +31,22 @@ const COLUMNS = [
 const PAGES = {
   board: 'board',
   stories: 'stories',
-  accounts: 'accounts'
+  accounts: 'accounts',
+  replies: 'replies'
 }
 
 function getPageFromHash() {
   const hash = window.location.hash.replace(/^#/, '').trim().toLowerCase()
   if (hash === PAGES.stories) return PAGES.stories
   if (hash === PAGES.accounts) return PAGES.accounts
+  if (hash === PAGES.replies) return PAGES.replies
   return PAGES.board
 }
 
 function getPageHash(page) {
   if (page === PAGES.stories) return '#stories'
   if (page === PAGES.accounts) return '#accounts'
+  if (page === PAGES.replies) return '#replies'
   return '#board'
 }
 
@@ -47,12 +54,15 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
   const tabs = [
     { key: PAGES.board, label: 'Task Board' },
     { key: PAGES.stories, label: 'Story List' },
-    { key: PAGES.accounts, label: 'Test Accounts' }
+    { key: PAGES.accounts, label: 'Test Accounts' },
+    { key: PAGES.replies, label: 'Reply Library' }
   ]
   const currentPageLabel = currentPage === PAGES.stories
     ? 'Story List'
     : currentPage === PAGES.accounts
       ? 'Test Accounts'
+      : currentPage === PAGES.replies
+        ? 'Reply Library'
       : 'Task Board'
 
   return (
@@ -169,6 +179,158 @@ function TestAccountsPage({ currentPage, onNavigate }) {
           initialTestAccount={editor.testAccount}
           onConfirm={handleConfirm}
           onClose={() => setEditor(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ReplyTemplatesPage({ currentPage, onNavigate }) {
+  const {
+    categories,
+    loading,
+    error,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addReply,
+    updateReply,
+    deleteReply
+  } = useReplyTemplates()
+  const [categoryEditor, setCategoryEditor] = useState(null)
+  const [replyEditor, setReplyEditor] = useState(null)
+  const [editorError, setEditorError] = useState('')
+  const [pageError, setPageError] = useState('')
+  const replyCount = categories.reduce((total, category) => total + category.replies.length, 0)
+
+  if (loading) return <div className="flex h-screen items-center justify-center bg-slate-100 text-gray-400">Loading…</div>
+  if (error) return <div className="flex h-screen items-center justify-center bg-slate-100 text-red-400">Error loading data</div>
+
+  function closeCategoryEditor() {
+    setCategoryEditor(null)
+    setEditorError('')
+  }
+
+  function closeReplyEditor() {
+    setReplyEditor(null)
+    setEditorError('')
+  }
+
+  function openCreateCategoryEditor() {
+    setPageError('')
+    setEditorError('')
+    setCategoryEditor({ mode: 'create', category: null })
+  }
+
+  function openEditCategoryEditor(category) {
+    setPageError('')
+    setEditorError('')
+    setCategoryEditor({ mode: 'edit', category })
+  }
+
+  function openCreateReplyEditor(category) {
+    setPageError('')
+    setEditorError('')
+    setReplyEditor({ mode: 'create', category, reply: null })
+  }
+
+  function openEditReplyEditor(category, reply) {
+    setPageError('')
+    setEditorError('')
+    setReplyEditor({ mode: 'edit', category, reply })
+  }
+
+  async function handleCategoryConfirm(data) {
+    try {
+      if (categoryEditor?.mode === 'edit') {
+        await updateCategory(categoryEditor.category.id, data)
+      } else {
+        await addCategory(data)
+      }
+
+      closeCategoryEditor()
+    } catch (event) {
+      setEditorError(event.message || 'Could not save category.')
+    }
+  }
+
+  async function handleReplyConfirm(data) {
+    try {
+      if (!replyEditor?.category) return
+
+      if (replyEditor.mode === 'edit') {
+        await updateReply(replyEditor.category.id, replyEditor.reply.id, data)
+      } else {
+        await addReply(replyEditor.category.id, data)
+      }
+
+      closeReplyEditor()
+    } catch (event) {
+      setEditorError(event.message || 'Could not save reply.')
+    }
+  }
+
+  async function handleDeleteCategory(category) {
+    try {
+      await deleteCategory(category.id)
+      setPageError('')
+    } catch (event) {
+      setPageError(event.message || 'Could not delete category.')
+    }
+  }
+
+  async function handleDeleteReply(category, reply) {
+    try {
+      await deleteReply(category.id, reply.id)
+      setPageError('')
+    } catch (event) {
+      setPageError(event.message || 'Could not delete reply.')
+    }
+  }
+
+  return (
+    <div className="flex h-screen flex-col bg-slate-100 font-sans text-slate-900">
+      <ShellHeader
+        currentPage={currentPage}
+        onNavigate={onNavigate}
+        summary={[
+          { label: `Categories ${categories.length}` },
+          { label: `Replies ${replyCount}` }
+        ]}
+      />
+
+      <main className="flex-1 overflow-auto p-4">
+        <ReplyTemplatesPanel
+          categories={categories}
+          errorMessage={pageError}
+          onDismissError={() => setPageError('')}
+          onAddCategory={openCreateCategoryEditor}
+          onEditCategory={openEditCategoryEditor}
+          onDeleteCategory={handleDeleteCategory}
+          onAddReply={openCreateReplyEditor}
+          onEditReply={openEditReplyEditor}
+          onDeleteReply={handleDeleteReply}
+        />
+      </main>
+
+      {categoryEditor && (
+        <ReplyTemplateCategoryModal
+          mode={categoryEditor.mode}
+          initialCategory={categoryEditor.category}
+          errorMessage={editorError}
+          onConfirm={handleCategoryConfirm}
+          onClose={closeCategoryEditor}
+        />
+      )}
+
+      {replyEditor && (
+        <ReplyTemplateReplyModal
+          mode={replyEditor.mode}
+          categoryName={replyEditor.category?.name ?? ''}
+          initialReply={replyEditor.reply}
+          errorMessage={editorError}
+          onConfirm={handleReplyConfirm}
+          onClose={closeReplyEditor}
         />
       )}
     </div>
@@ -466,6 +628,10 @@ export default function App() {
 
   if (currentPage === PAGES.accounts) {
     return <TestAccountsPage currentPage={currentPage} onNavigate={navigateTo} />
+  }
+
+  if (currentPage === PAGES.replies) {
+    return <ReplyTemplatesPage currentPage={currentPage} onNavigate={navigateTo} />
   }
 
   return <BoardPage currentPage={currentPage} onNavigate={navigateTo} />

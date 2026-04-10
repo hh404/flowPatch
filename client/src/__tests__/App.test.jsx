@@ -38,6 +38,25 @@ const mockTestAccounts = [
   }
 ]
 
+const mockReplyTemplates = {
+  categories: [
+    {
+      id: 'release',
+      name: 'Release / Build',
+      icon: '🚀',
+      replies: [
+        {
+          id: 'release-timeline',
+          title: 'Release timeline explanation',
+          keywords: ['timeline', 'review'],
+          polite: 'After code freeze, we still need time for QA.',
+          firm: 'The release timeline has already been shared.'
+        }
+      ]
+    }
+  ]
+}
+
 function jsonResponse(body) {
   return Promise.resolve({ ok: true, json: async () => body })
 }
@@ -53,6 +72,7 @@ beforeEach(() => {
     ])
     if (url === '/api/stories' && method === 'GET') return jsonResponse(mockStories)
     if (url === '/api/test-accounts' && method === 'GET') return jsonResponse(mockTestAccounts)
+    if (url === '/api/reply-templates' && method === 'GET') return jsonResponse(mockReplyTemplates)
     if (url === '/api/tasks' && method === 'POST') return jsonResponse(mockTasks[0])
     if (url === '/api/tasks/1' && method === 'PATCH') return jsonResponse({ ...mockTasks[0], status: 'doing' })
     if (url === '/api/stories' && method === 'POST') {
@@ -79,6 +99,14 @@ beforeEach(() => {
         simulator: 'iPhone 16',
         createdAt: '',
         updatedAt: ''
+      })
+    }
+    if (url === '/api/reply-templates/categories' && method === 'POST') {
+      return jsonResponse({
+        id: 'process',
+        name: 'Process / Workflow',
+        icon: '📋',
+        replies: []
       })
     }
 
@@ -121,6 +149,18 @@ describe('App', () => {
 
     expect(screen.getAllByText('qa.flowpatch@example.com').length).toBeGreaterThan(0)
     expect(screen.getByText('iPhone 16 Pro')).toBeInTheDocument()
+    expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
+  })
+
+  it('navigates to the reply library and renders templates there', async () => {
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Wait for pipeline')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'Reply Library' }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: /reply library/i })).toBeInTheDocument())
+
+    expect(screen.getAllByText('Release / Build').length).toBeGreaterThan(0)
+    expect(screen.getByText('Release timeline explanation')).toBeInTheDocument()
+    expect(screen.getByText('The release timeline has already been shared.')).toBeInTheDocument()
     expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
   })
 
@@ -250,6 +290,31 @@ describe('App', () => {
           password: 'Prod123!',
           note: '',
           simulator: 'iPhone 16'
+        })
+      })
+    ))
+  })
+
+  it('creates a reply category from the reply library page', async () => {
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Wait for pipeline')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'Reply Library' }))
+    await waitFor(() => expect(screen.getByText('Release timeline explanation')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: /^add category$/i }))
+    await userEvent.type(screen.getByLabelText(/^id$/i), 'process')
+    await userEvent.type(screen.getByLabelText(/^name$/i), 'Process / Workflow')
+    await userEvent.type(screen.getByLabelText(/^icon/i), '📋')
+    await userEvent.click(screen.getByRole('button', { name: /create category/i }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      '/api/reply-templates/categories',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          id: 'process',
+          name: 'Process / Workflow',
+          icon: '📋'
         })
       })
     ))

@@ -1,0 +1,200 @@
+{
+  "categories": [
+    {
+      "id": "webview",
+      "name": "WebView / Hybrid App",
+      "icon": "🌐",
+      "replies": [
+        {
+          "id": "webview-no-rebuild",
+          "title": "No rebuild needed for web updates",
+          "keywords": ["webview", "rebuild", "deploy", "web update", "no build"],
+          "polite": "We don't need a new app build for this.\n\n• The app is just a WebView that loads web content.\n• Once the web team deploys, users get the latest version immediately.\n• Rebuilding the app does not change anything in this case.\n\nPlease check with the web team on their deployment timeline.",
+          "firm": "As mentioned before, a new app build is not needed here.\n\n• The app is a WebView — it loads web content directly.\n• Web deployments are reflected immediately without an app build.\n• Building the app again will not change anything.\n\nThis has been clarified previously. Please check with the web team."
+        },
+        {
+          "id": "webview-when-rebuild",
+          "title": "When app rebuild IS needed",
+          "keywords": ["webview", "rebuild", "native", "shell", "when build"],
+          "polite": "An app rebuild is only needed when we change the native shell.\n\nThis includes:\n• URL scheme changes\n• Navigation bar updates\n• New permission requests\n• Native SDK upgrades\n\nPure web content changes do not require a new build.",
+          "firm": "To be clear — an app rebuild is only required for native shell changes.\n\n• URL scheme, navigation bar, permissions, native SDKs — these need a build.\n• Web content changes — these do NOT need a build.\n\nIf the change is purely on the web side, please do not raise a build request."
+        },
+        {
+          "id": "webview-cache",
+          "title": "WebView cache clearing",
+          "keywords": ["webview", "cache", "stale", "old version", "clear cache"],
+          "polite": "This is likely a web caching issue, not an app issue.\n\n• The web team should check their cache-control headers.\n• We can force clear the WebView cache on the app side, but this should not be the default solution.\n\nPlease check with the web team first.",
+          "firm": "This is a web caching issue. It is not an app problem.\n\n• The cache-control headers on the web side need to be fixed.\n• Force clearing the WebView cache from the app is a workaround, not a solution.\n\nPlease resolve this on the web side. We should not be doing app releases to fix web caching."
+        }
+      ]
+    },
+    {
+      "id": "release",
+      "name": "Release / Build",
+      "icon": "🚀",
+      "replies": [
+        {
+          "id": "release-scope-freeze",
+          "title": "Scope is frozen for this release",
+          "keywords": ["scope", "freeze", "frozen", "no more", "cutoff", "lock"],
+          "polite": "The scope for this release is already frozen.\n\n• Any new changes will go into the next release.\n• Adding items at this stage increases risk and delays the timeline for everyone.\n\nPlease raise a ticket and we'll prioritize it for the next cycle.",
+          "firm": "The scope is frozen. We cannot add anything to this release.\n\n• This was communicated during planning.\n• Late additions put the entire release at risk.\n\nPlease plan ahead for the next release cycle. No exceptions at this stage."
+        },
+        {
+          "id": "release-hotfix-criteria",
+          "title": "Hotfix criteria",
+          "keywords": ["hotfix", "criteria", "emergency", "urgent fix", "production bug"],
+          "polite": "A hotfix is only for critical production issues:\n\n• App crashes\n• Data loss\n• Security vulnerabilities\n• Blocked core user flows\n\nFeature gaps and minor UI bugs do not qualify. Please raise a ticket and we'll prioritize it for the next release.",
+          "firm": "This does not meet hotfix criteria.\n\nHotfixes are strictly for:\n• Crashes, data loss, security issues, or blocked core flows\n\nThis is not one of those. Please raise a ticket for the next release. We cannot treat every request as an emergency."
+        },
+        {
+          "id": "release-timeline",
+          "title": "Release timeline explanation",
+          "keywords": ["timeline", "when release", "how long", "app store", "review"],
+          "polite": "After code freeze, we still need time for:\n\n• QA regression testing\n• Bug fixes\n• App Store review (typically 1–2 business days, sometimes longer)\n\nWe cannot guarantee an exact release date — we can only control when we submit.",
+          "firm": "The release timeline has already been shared and has not changed.\n\n• QA regression, bug fixes, and App Store review all take time.\n• We cannot compress this process.\n• We control submission, not Apple's review speed.\n\nPlease refer to the release schedule that was communicated earlier."
+        },
+        {
+          "id": "release-no-shortcut",
+          "title": "Cannot skip QA / testing",
+          "keywords": ["skip test", "skip qa", "no testing", "rush", "shortcut"],
+          "polite": "We cannot skip QA or shorten the testing cycle.\n\n• Every release goes through the full regression suite.\n• Skipping testing creates production risk that affects all users, not just this feature.\n\nIf the timeline is tight, we should discuss reducing scope instead.",
+          "firm": "No, we will not skip testing.\n\n• Testing exists to protect all users in production.\n• If we skip QA and something breaks, the impact is on everyone.\n\nIf the deadline cannot move, then the scope must be reduced. This is non-negotiable."
+        }
+      ]
+    },
+    {
+      "id": "dependency",
+      "name": "Cross-team Dependency",
+      "icon": "🔗",
+      "replies": [
+        {
+          "id": "dep-api-not-ready",
+          "title": "API not ready, blocked",
+          "keywords": ["api", "blocked", "not ready", "backend", "waiting"],
+          "polite": "We are currently blocked — the API is not ready yet.\n\n• UI implementation is done.\n• Integration code is done based on the API contract.\n• We need the API available in the test environment to proceed with E2E testing.\n\nPlease advise on the expected API delivery date.",
+          "firm": "We remain blocked on the API. This has not changed since the last update.\n\n• Our side is fully complete — UI and integration code are done.\n• We cannot proceed without the API in the test environment.\n\nPlease provide a confirmed delivery date. We need to escalate if there is no timeline."
+        },
+        {
+          "id": "dep-api-contract",
+          "title": "Need API contract first",
+          "keywords": ["api contract", "spec", "swagger", "endpoint", "schema"],
+          "polite": "Before we start development, we need the finalized API contract:\n\n• Endpoint URLs\n• Request/response schemas\n• Error codes\n• Authentication method\n\nWe can work in parallel once the contract is agreed, but we cannot start without it.",
+          "firm": "We have requested the API contract multiple times. We still don't have it.\n\n• No endpoint URLs, no schemas, no error codes.\n• We cannot start development without this.\n\nPlease treat this as a blocker. Every day without the contract is a day of delay on the iOS side."
+        },
+        {
+          "id": "dep-breaking-change",
+          "title": "API breaking change impact",
+          "keywords": ["breaking change", "api change", "backward", "compatibility"],
+          "polite": "⚠️ This API change is not backward compatible.\n\nIt will break the current app version in production. We need either:\n• A versioned endpoint, or\n• A migration period where both old and new formats are supported\n\nPlease do not deploy this change without coordination.",
+          "firm": "⚠️ Do NOT deploy this API change.\n\nIt is not backward compatible and will break the live app for all users.\n\nOptions:\n• Version the endpoint\n• Support both formats during migration\n\nDeploying without coordination will cause a production incident. This needs to be discussed before any action."
+        }
+      ]
+    },
+    {
+      "id": "testing",
+      "name": "Testing / QA",
+      "icon": "🧪",
+      "replies": [
+        {
+          "id": "test-env-issue",
+          "title": "Test environment issue, not app bug",
+          "keywords": ["test env", "environment", "not bug", "backend issue", "server"],
+          "polite": "This is a test environment issue, not an app bug.\n\n• The app is pointing to the correct endpoint.\n• The backend service is returning errors.\n\nPlease check the server-side logs. We can retest once the environment is stable.",
+          "firm": "This is not an app bug. It is a backend/environment issue.\n\n• We have verified the app is calling the correct endpoint.\n• The errors are coming from the server side.\n\nPlease fix the environment first. Raising this as an app bug wastes everyone's time."
+        },
+        {
+          "id": "test-account",
+          "title": "Need test account / test data",
+          "keywords": ["test account", "test data", "credentials", "login", "access"],
+          "polite": "We need test accounts to verify this feature.\n\nPlease provide:\n• Accounts with the required permissions/entitlements\n• Test data set up for the relevant scenarios\n\nWe cannot complete testing without proper test credentials.",
+          "firm": "We are still waiting for test accounts. This was requested on [date].\n\n• Without proper test credentials, we cannot verify this feature.\n• This is now blocking our testing timeline.\n\nPlease provide the accounts today, or we need to flag this as a blocker in the standup."
+        },
+        {
+          "id": "test-reproduce",
+          "title": "Cannot reproduce the bug",
+          "keywords": ["cannot reproduce", "no repro", "works for me", "need steps"],
+          "polite": "We tried to reproduce this issue but could not replicate it.\n\nCould you provide:\n• Exact steps to reproduce\n• Device model and OS version\n• App version\n• Screen recording (if possible)\n\nWe will investigate further once we can reproduce it.",
+          "firm": "We cannot reproduce this issue. We have tried multiple times.\n\nWithout the following, we cannot investigate further:\n• Exact reproduction steps\n• Device model, OS version, app version\n• Screen recording\n\nPlease provide this information. We will close this ticket if no repro steps are provided within [X] days."
+        }
+      ]
+    },
+    {
+      "id": "process",
+      "name": "Process / Workflow",
+      "icon": "📋",
+      "replies": [
+        {
+          "id": "process-ticket-first",
+          "title": "Please raise a ticket",
+          "keywords": ["ticket", "ado", "work item", "no ticket", "track"],
+          "polite": "Could you please raise a work item in ADO for this?\n\n• We need it tracked so it can be prioritized and scheduled.\n• Ad-hoc requests without tickets are hard to manage and easy to lose.\n\nOnce the ticket is created, we'll review and provide an estimate.",
+          "firm": "Please raise a ticket in ADO. We do not action ad-hoc requests.\n\n• Without a ticket, this cannot be prioritized or tracked.\n• We have no visibility on requests made only via chat.\n\nThis is a standard process. Please create the work item first."
+        },
+        {
+          "id": "process-not-ios",
+          "title": "This is not an iOS issue",
+          "keywords": ["not ios", "not mobile", "backend", "web issue", "wrong team"],
+          "polite": "After investigation, this is not an iOS issue.\n\n• Root cause is on the [backend/web/API] side.\n• I have added my findings to the ticket.\n\nPlease reassign to the appropriate team for further action.",
+          "firm": "This is not an iOS issue. I have already investigated and confirmed this.\n\n• The root cause is on the [backend/web/API] side.\n• My findings are documented in the ticket.\n\nPlease reassign to the correct team. Keeping this with iOS is blocking real work."
+        },
+        {
+          "id": "process-estimate",
+          "title": "Need time to estimate",
+          "keywords": ["estimate", "how long", "effort", "story point", "sizing"],
+          "polite": "We need to review the requirements before providing an estimate.\n\n• A rough guess without full understanding leads to inaccurate timelines.\n• Please allow us 1–2 days to review.\n\nWe'll come back with a proper estimate after that.",
+          "firm": "We cannot give an estimate on the spot.\n\n• Estimating without reviewing requirements leads to wrong commitments.\n• We need 1–2 days to review properly.\n\nPlease do not commit timelines on our behalf without consulting us first."
+        },
+        {
+          "id": "process-meeting",
+          "title": "Prefer async over meeting",
+          "keywords": ["meeting", "async", "no meeting", "email", "slack"],
+          "polite": "Could we handle this async instead of scheduling a meeting?\n\n• If you document the requirements/questions in the ticket, I can review and respond.\n• This way we don't block each other's time and everything is documented.\n\nHappy to set up a call if async doesn't resolve it.",
+          "firm": "I don't think a meeting is necessary for this.\n\n• Please document your questions in the ticket.\n• I will respond with my input in writing.\n\nMeetings without a clear agenda and documented questions are not productive. Let's keep this async."
+        },
+        {
+          "id": "process-not-my-project",
+          "title": "Not involved in this project",
+          "keywords": ["not my project", "wrong person", "not involved", "not assigned", "wrong group"],
+          "polite": "I'm not involved in this project and don't have the context to answer these questions.\n\n• I was not part of the planning or development for this feature.\n• I may not have access to the relevant codebase or documentation.\n• Answering without proper context could lead to incorrect information.\n\nPlease check with the project lead or the assigned iOS engineer. Happy to help if the work is formally assigned to me.",
+          "firm": "I am not part of this project. Please do not direct these questions to me.\n\n• I have no context on this feature.\n• I am not the assigned engineer.\n• Answering questions without involvement will create confusion.\n\nPlease check the project assignment and reach out to the correct person."
+        }
+      ]
+    },
+    {
+      "id": "ios",
+      "name": "iOS Technical",
+      "icon": "📱",
+      "replies": [
+        {
+          "id": "ios-backward-compat",
+          "title": "iOS version support policy",
+          "keywords": ["ios version", "support", "minimum", "backward", "old ios"],
+          "polite": "Our app supports iOS [N-2] and above, following Apple's standard practice.\n\n• Supporting older versions increases dev and testing effort significantly.\n• User coverage on older versions is very low.\n\nWe recommend checking our analytics for the actual distribution before deciding.",
+          "firm": "We follow Apple's standard iOS [N-2] support policy. This is not negotiable per team.\n\n• Older version support multiplies dev and QA effort for minimal user coverage.\n• We will not add support for older versions without data justification.\n\nPlease provide analytics data if you want to discuss this further."
+        },
+        {
+          "id": "ios-app-size",
+          "title": "App size concern",
+          "keywords": ["app size", "binary", "too big", "download size", "ipa"],
+          "polite": "We are monitoring the app binary size closely.\n\n• Adding new SDKs or large assets will increase the download size.\n• Large apps lead to lower download rates, especially on cellular networks.\n\nBefore adding any new dependency, we need to evaluate the size impact first.",
+          "firm": "We will not add this SDK without a size impact assessment.\n\n• App binary size directly affects download and update rates.\n• Every new dependency must justify its size cost.\n\nPlease provide the SDK size and we will evaluate. We have rejected similar requests before for the same reason."
+        },
+        {
+          "id": "ios-permission",
+          "title": "iOS permission explanation",
+          "keywords": ["permission", "camera", "location", "notification", "privacy"],
+          "polite": "iOS requires explicit user consent for sensitive data access (camera, location, notifications, etc.).\n\n• Apple will reject our app if we request permissions without a clear usage description.\n• We need to provide a valid reason string for each permission.\n\nPlease confirm the use case so we can draft the permission description.",
+          "firm": "We cannot request this permission without a valid use case.\n\n• Apple requires a clear usage description for every permission.\n• Apps get rejected for vague or unjustified permission requests.\n• \"Just in case\" is not a valid reason.\n\nPlease provide the specific user flow that requires this permission."
+        },
+        {
+          "id": "ios-review-rejection",
+          "title": "App Store review rejection",
+          "keywords": ["rejection", "app review", "apple reject", "guideline", "review"],
+          "polite": "Our submission was rejected by Apple's review team.\n\n• The rejection reason is documented in the ticket.\n• We need to address the specific guideline violation before resubmitting.\n• This may require code changes and another round of testing.\n\nI will update the ticket once we have a fix plan.",
+          "firm": "The app was rejected by Apple. This is due to a guideline violation, not an iOS team issue.\n\n• The rejection reason is in the ticket — please read it.\n• We need to fix the violation before resubmitting.\n• Pushing us to \"just resubmit\" will not work. Apple will reject again for the same reason.\n\nWe will update the ticket with the fix plan."
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,20 @@ const BASE = '/api/tasks'
 const MVPS_BASE = '/api/mvps'
 const STORIES_BASE = '/api/stories'
 const TEST_ACCOUNTS_BASE = '/api/test-accounts'
+const REPLY_TEMPLATES_BASE = '/api/reply-templates'
+
+async function getErrorMessage(res, fallback) {
+  try {
+    const data = await res.json()
+    if (typeof data?.error === 'string' && data.error.trim()) {
+      return data.error.trim()
+    }
+  } catch {
+    return fallback
+  }
+
+  return fallback
+}
 
 export async function fetchTasks() {
   const res = await fetch(BASE)
@@ -148,4 +162,71 @@ export async function patchTestAccount(id, data) {
 export async function removeTestAccount(id) {
   const res = await fetch(`${TEST_ACCOUNTS_BASE}/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('delete test account failed')
+}
+
+export async function fetchReplyTemplates() {
+  const res = await fetch(REPLY_TEMPLATES_BASE)
+  if (!res.ok) throw new Error('fetch reply templates failed')
+  return res.json()
+}
+
+export async function createReplyTemplateCategory(data) {
+  const res = await fetch(`${REPLY_TEMPLATES_BASE}/categories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'create reply template category failed'))
+  return res.json()
+}
+
+export async function patchReplyTemplateCategory(id, data) {
+  const res = await fetch(`${REPLY_TEMPLATES_BASE}/categories/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'patch reply template category failed'))
+  return res.json()
+}
+
+export async function removeReplyTemplateCategory(id) {
+  const res = await fetch(`${REPLY_TEMPLATES_BASE}/categories/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'delete reply template category failed'))
+}
+
+export async function createReplyTemplateReply(categoryId, data) {
+  const res = await fetch(`${REPLY_TEMPLATES_BASE}/categories/${encodeURIComponent(categoryId)}/replies`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'create reply template reply failed'))
+  return res.json()
+}
+
+export async function patchReplyTemplateReply(categoryId, replyId, data) {
+  const res = await fetch(
+    `${REPLY_TEMPLATES_BASE}/categories/${encodeURIComponent(categoryId)}/replies/${encodeURIComponent(replyId)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }
+  )
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'patch reply template reply failed'))
+  return res.json()
+}
+
+export async function removeReplyTemplateReply(categoryId, replyId) {
+  const res = await fetch(
+    `${REPLY_TEMPLATES_BASE}/categories/${encodeURIComponent(categoryId)}/replies/${encodeURIComponent(replyId)}`,
+    { method: 'DELETE' }
+  )
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'delete reply template reply failed'))
 }
