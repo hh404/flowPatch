@@ -65,4 +65,21 @@ describe('ReplyTemplateCategoryModal', () => {
       icon: 'P'
     })
   })
+
+  it('keeps the form body scrollable while separating the action row', () => {
+    render(
+      <ReplyTemplateCategoryModal
+        mode="edit"
+        initialCategory={baseCategory}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('reply-template-category-modal-surface')).toHaveClass('max-h-[calc(100vh-2rem)]')
+    expect(screen.getByTestId('reply-template-category-modal-scroll-body')).toHaveClass('overflow-y-auto')
+    expect(screen.getByTestId('reply-template-category-modal-actions')).toHaveClass('border-t')
+    expect(screen.getByRole('button', { name: /save category/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  })
 })

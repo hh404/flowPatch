@@ -77,117 +77,130 @@ export default function ReplyTemplateReplyModal({
   return (
     <div
       data-testid="reply-template-reply-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm"
       onClick={event => {
         if (allowBackdropClose && event.target === event.currentTarget) onClose()
       }}
     >
-      <div className="mx-4 w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="border-b border-gray-100 px-5 pb-4 pt-5">
-          <h2 className="text-base font-semibold text-gray-800">
-            {mode === 'edit' ? 'Edit Reply' : 'Add Reply'}
-          </h2>
-          {categoryName && (
-            <p className="mt-1 text-xs text-gray-500">Category: {categoryName}</p>
-          )}
+      <div className="flex min-h-full items-start justify-center p-4 sm:items-center">
+        <div
+          data-testid="reply-template-reply-modal-surface"
+          className="flex w-full max-w-2xl max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        >
+          <div className="border-b border-gray-100 px-5 pb-4 pt-5">
+            <h2 className="text-base font-semibold text-gray-800">
+              {mode === 'edit' ? 'Edit Reply' : 'Add Reply'}
+            </h2>
+            {categoryName && (
+              <p className="mt-1 text-xs text-gray-500">Category: {categoryName}</p>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div
+              data-testid="reply-template-reply-modal-scroll-body"
+              className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4"
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label htmlFor="reply-template-id" className="mb-1 block text-xs font-medium text-gray-500">ID</label>
+                  <input
+                    id="reply-template-id"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={form.id}
+                    onChange={event => setForm(current => ({ ...current, id: event.target.value }))}
+                    placeholder="release-timeline"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="reply-template-title" className="mb-1 block text-xs font-medium text-gray-500">Title</label>
+                  <input
+                    id="reply-template-title"
+                    ref={titleRef}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={form.title}
+                    onChange={event => setForm(current => ({ ...current, title: event.target.value }))}
+                    placeholder="Release timeline explanation"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="reply-template-keywords" className="mb-1 block text-xs font-medium text-gray-500">
+                  Keywords <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <textarea
+                  id="reply-template-keywords"
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={form.keywords}
+                  onChange={event => setForm(current => ({ ...current, keywords: event.target.value }))}
+                  placeholder="timeline, review, app store"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Separate keywords with commas or new lines.
+                </p>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div>
+                  <label htmlFor="reply-template-polite" className="mb-1 block text-xs font-medium text-gray-500">
+                    Polite
+                  </label>
+                  <textarea
+                    id="reply-template-polite"
+                    rows={10}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={form.polite}
+                    onChange={event => setForm(current => ({ ...current, polite: event.target.value }))}
+                    placeholder={'Polite version...\n\n• Bullet one\n• Bullet two'}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="reply-template-firm" className="mb-1 block text-xs font-medium text-gray-500">
+                    Firm
+                  </label>
+                  <textarea
+                    id="reply-template-firm"
+                    rows={10}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={form.firm}
+                    onChange={event => setForm(current => ({ ...current, firm: event.target.value }))}
+                    placeholder={'Firm version...\n\n• Bullet one\n• Bullet two'}
+                  />
+                </div>
+              </div>
+
+              {errorMessage && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                  {errorMessage}
+                </div>
+              )}
+            </div>
+
+            <div
+              data-testid="reply-template-reply-modal-actions"
+              className="flex justify-end gap-2 border-t border-gray-100 px-5 py-4"
+            >
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!form.id.trim() || !form.title.trim() || !form.polite.trim() || !form.firm.trim()}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {mode === 'edit' ? 'Save Reply' : 'Create Reply'}
+              </button>
+            </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 px-5 pb-5 pt-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label htmlFor="reply-template-id" className="mb-1 block text-xs font-medium text-gray-500">ID</label>
-              <input
-                id="reply-template-id"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                value={form.id}
-                onChange={event => setForm(current => ({ ...current, id: event.target.value }))}
-                placeholder="release-timeline"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="reply-template-title" className="mb-1 block text-xs font-medium text-gray-500">Title</label>
-              <input
-                id="reply-template-title"
-                ref={titleRef}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                value={form.title}
-                onChange={event => setForm(current => ({ ...current, title: event.target.value }))}
-                placeholder="Release timeline explanation"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="reply-template-keywords" className="mb-1 block text-xs font-medium text-gray-500">
-              Keywords <span className="font-normal text-gray-400">(optional)</span>
-            </label>
-            <textarea
-              id="reply-template-keywords"
-              rows={3}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={form.keywords}
-              onChange={event => setForm(current => ({ ...current, keywords: event.target.value }))}
-              placeholder="timeline, review, app store"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Separate keywords with commas or new lines.
-            </p>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-2">
-            <div>
-              <label htmlFor="reply-template-polite" className="mb-1 block text-xs font-medium text-gray-500">
-                Polite
-              </label>
-              <textarea
-                id="reply-template-polite"
-                rows={10}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                value={form.polite}
-                onChange={event => setForm(current => ({ ...current, polite: event.target.value }))}
-                placeholder={'Polite version...\n\n• Bullet one\n• Bullet two'}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="reply-template-firm" className="mb-1 block text-xs font-medium text-gray-500">
-                Firm
-              </label>
-              <textarea
-                id="reply-template-firm"
-                rows={10}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                value={form.firm}
-                onChange={event => setForm(current => ({ ...current, firm: event.target.value }))}
-                placeholder={'Firm version...\n\n• Bullet one\n• Bullet two'}
-              />
-            </div>
-          </div>
-
-          {errorMessage && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {errorMessage}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!form.id.trim() || !form.title.trim() || !form.polite.trim() || !form.firm.trim()}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {mode === 'edit' ? 'Save Reply' : 'Create Reply'}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   )

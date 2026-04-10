@@ -70,4 +70,21 @@ describe('TestAccountModal', () => {
       simulator: 'iPhone 16 Pro'
     })
   })
+
+  it('keeps the form body scrollable while separating the action row', () => {
+    render(
+      <TestAccountModal
+        mode="edit"
+        initialTestAccount={baseTestAccount}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('test-account-modal-surface')).toHaveClass('max-h-[calc(100vh-2rem)]')
+    expect(screen.getByTestId('test-account-modal-scroll-body')).toHaveClass('overflow-y-auto')
+    expect(screen.getByTestId('test-account-modal-actions')).toHaveClass('border-t')
+    expect(screen.getByRole('button', { name: /save account/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  })
 })

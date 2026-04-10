@@ -74,4 +74,22 @@ describe('ReplyTemplateReplyModal', () => {
       firm: 'We do not control Apple review speed after submission.'
     })
   })
+
+  it('keeps the form body scrollable while separating the action row', () => {
+    render(
+      <ReplyTemplateReplyModal
+        mode="edit"
+        categoryName="Release / Build"
+        initialReply={baseReply}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('reply-template-reply-modal-surface')).toHaveClass('max-h-[calc(100vh-2rem)]')
+    expect(screen.getByTestId('reply-template-reply-modal-scroll-body')).toHaveClass('overflow-y-auto')
+    expect(screen.getByTestId('reply-template-reply-modal-actions')).toHaveClass('border-t')
+    expect(screen.getByRole('button', { name: /save reply/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  })
 })

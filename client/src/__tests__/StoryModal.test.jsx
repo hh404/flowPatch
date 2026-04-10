@@ -82,4 +82,22 @@ describe('StoryModal', () => {
       folder: '/Users/hans/workspaces/core-platform/folder-story'
     }))
   })
+
+  it('keeps the form body scrollable while separating the action row', () => {
+    render(
+      <StoryModal
+        mode="edit"
+        initialStory={baseStory}
+        mvpOptions={['Core Platform MVP']}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('story-modal-surface')).toHaveClass('max-h-[calc(100vh-2rem)]')
+    expect(screen.getByTestId('story-modal-scroll-body')).toHaveClass('overflow-y-auto')
+    expect(screen.getByTestId('story-modal-actions')).toHaveClass('border-t')
+    expect(screen.getByRole('button', { name: /save story/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  })
 })

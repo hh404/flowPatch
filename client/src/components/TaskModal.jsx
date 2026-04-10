@@ -84,167 +84,182 @@ export default function TaskModal({ mode = 'create', initialTask, onConfirm, onC
   return (
     <div
       data-testid="task-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm"
       onClick={event => {
         if (allowBackdropClose && event.target === event.currentTarget) onClose()
       }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-800 text-base">{mode === 'edit' ? 'Edit Task' : 'New Task'}</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="px-5 pt-4 pb-5 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
-            <input
-              ref={titleRef}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={form.title}
-              onChange={e => setForm(current => ({ ...current, title: e.target.value }))}
-              placeholder="What needs to happen?"
-            />
+      <div className="flex min-h-full items-start justify-center p-4 sm:items-center">
+        <div
+          data-testid="task-modal-surface"
+          className="flex w-full max-w-md max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        >
+          <div className="border-b border-gray-100 px-5 pb-4 pt-5">
+            <h2 className="text-base font-semibold text-gray-800">{mode === 'edit' ? 'Edit Task' : 'New Task'}</h2>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">Type</label>
-            <div className="flex flex-wrap gap-2">
-              {TYPES.map(t => (
-                <button
-                  type="button"
-                  key={t.value}
-                  onClick={() => setForm(current => ({ ...current, type: t.value }))}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${t.bg} ${t.text}
-                    ${form.type === t.value ? `ring-2 ${t.ring} scale-105` : 'opacity-60 hover:opacity-90'}`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">Status</label>
-            <div className="grid grid-cols-4 gap-2">
-              {STATUSES.map(status => (
-                <button
-                  type="button"
-                  key={status.value}
-                  onClick={() => setForm(current => ({ ...current, status: status.value }))}
-                  className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
-                    form.status === status.value
-                      ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {status.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">Priority</label>
-            <div className="grid grid-cols-3 gap-2">
-              {PRIORITIES.map(priority => (
-                <button
-                  type="button"
-                  key={priority.value}
-                  onClick={() => setForm(current => ({ ...current, priority: priority.value }))}
-                  className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
-                    form.priority === priority.value
-                      ? priority.className
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {priority.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Note <span className="font-normal text-gray-400">(optional)</span></label>
-            <textarea
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
-              rows={3}
-              value={form.note}
-              onChange={e => setForm(current => ({ ...current, note: e.target.value }))}
-              placeholder="Context, blockers, links…"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">ADO Ticket <span className="font-normal text-gray-400">(optional)</span></label>
-            <input
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={form.related}
-              onChange={e => setForm(current => ({ ...current, related: e.target.value }))}
-              placeholder="e.g. ADO-1234"
-            />
-          </div>
-
-          {showsFollowUpFields && (
-            <>
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div
+              data-testid="task-modal-scroll-body"
+              className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4"
+            >
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Waiting On <span className="font-normal text-gray-400">(optional)</span></label>
+                <label className="mb-1 block text-xs font-medium text-gray-500">Title</label>
                 <input
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  value={form.waitingOn}
-                  onChange={e => setForm(current => ({ ...current, waitingOn: e.target.value }))}
-                  placeholder="Person, team, system..."
+                  ref={titleRef}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={form.title}
+                  onChange={e => setForm(current => ({ ...current, title: e.target.value }))}
+                  placeholder="What needs to happen?"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Follow Up Date <span className="font-normal text-gray-400">(optional)</span></label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  value={form.followUpAt}
-                  onChange={e => setForm(current => ({ ...current, followUpAt: e.target.value }))}
+                <label className="mb-2 block text-xs font-medium text-gray-500">Type</label>
+                <div className="flex flex-wrap gap-2">
+                  {TYPES.map(t => (
+                    <button
+                      type="button"
+                      key={t.value}
+                      onClick={() => setForm(current => ({ ...current, type: t.value }))}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${t.bg} ${t.text}
+                        ${form.type === t.value ? `ring-2 ${t.ring} scale-105` : 'opacity-60 hover:opacity-90'}`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-gray-500">Status</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {STATUSES.map(status => (
+                    <button
+                      type="button"
+                      key={status.value}
+                      onClick={() => setForm(current => ({ ...current, status: status.value }))}
+                      className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
+                        form.status === status.value
+                          ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {status.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-gray-500">Priority</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PRIORITIES.map(priority => (
+                    <button
+                      type="button"
+                      key={priority.value}
+                      onClick={() => setForm(current => ({ ...current, priority: priority.value }))}
+                      className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
+                        form.priority === priority.value
+                          ? priority.className
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {priority.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">Note <span className="font-normal text-gray-400">(optional)</span></label>
+                <textarea
+                  className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  rows={3}
+                  value={form.note}
+                  onChange={e => setForm(current => ({ ...current, note: e.target.value }))}
+                  placeholder="Context, blockers, links…"
                 />
               </div>
-            </>
-          )}
 
-          <div>
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <label className="block text-xs font-medium text-gray-500">Reminder <span className="font-normal text-gray-400">(optional)</span></label>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">ADO Ticket <span className="font-normal text-gray-400">(optional)</span></label>
+                <input
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={form.related}
+                  onChange={e => setForm(current => ({ ...current, related: e.target.value }))}
+                  placeholder="e.g. ADO-1234"
+                />
+              </div>
+
+              <div>
+                {showsFollowUpFields && (
+                  <>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-500">Waiting On <span className="font-normal text-gray-400">(optional)</span></label>
+                      <input
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={form.waitingOn}
+                        onChange={e => setForm(current => ({ ...current, waitingOn: e.target.value }))}
+                        placeholder="Person, team, system..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-500">Follow Up Date <span className="font-normal text-gray-400">(optional)</span></label>
+                      <input
+                        type="date"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        value={form.followUpAt}
+                        onChange={e => setForm(current => ({ ...current, followUpAt: e.target.value }))}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="block text-xs font-medium text-gray-500">Reminder <span className="font-normal text-gray-400">(optional)</span></label>
+                  <button
+                    type="button"
+                    onClick={() => setForm(current => ({ ...current, remindAt: toDateTimeLocalValue(plusHours(1)) }))}
+                    className="text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+                  >
+                    +1h
+                  </button>
+                </div>
+                <input
+                  type="datetime-local"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={form.remindAt}
+                  onChange={e => setForm(current => ({ ...current, remindAt: e.target.value }))}
+                />
+              </div>
+
+            </div>
+
+            <div
+              data-testid="task-modal-actions"
+              className="flex justify-end gap-2 border-t border-gray-100 px-5 py-4"
+            >
               <button
                 type="button"
-                onClick={() => setForm(current => ({ ...current, remindAt: toDateTimeLocalValue(plusHours(1)) }))}
-                className="text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
               >
-                +1h
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!form.title.trim()}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {mode === 'edit' ? 'Save Changes' : 'Create Task'}
               </button>
             </div>
-            <input
-              type="datetime-local"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={form.remindAt}
-              onChange={e => setForm(current => ({ ...current, remindAt: e.target.value }))}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!form.title.trim()}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {mode === 'edit' ? 'Save Changes' : 'Create Task'}
-            </button>
-          </div>
-
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   )
