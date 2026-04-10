@@ -33,6 +33,8 @@ const mockTestAccounts = [
     password: 'Secret123!',
     note: 'Use for smoke tests',
     simulator: 'iPhone 16 Pro',
+    usedBy: 'Hans',
+    bankId: 'bankid-001',
     createdAt: '',
     updatedAt: '2026-04-05T11:00:00.000Z'
   }
@@ -97,6 +99,8 @@ beforeEach(() => {
         password: 'Prod123!',
         note: 'Use for prod smoke tests',
         simulator: 'iPhone 16',
+        usedBy: 'QA Team',
+        bankId: 'bankid-999',
         createdAt: '',
         updatedAt: ''
       })
@@ -149,6 +153,8 @@ describe('App', () => {
 
     expect(screen.getAllByText('qa.flowpatch@example.com').length).toBeGreaterThan(0)
     expect(screen.getByText('iPhone 16 Pro')).toBeInTheDocument()
+    expect(screen.getByText('Hans')).toBeInTheDocument()
+    expect(screen.getByText('bankid-001')).toBeInTheDocument()
     expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
   })
 
@@ -278,6 +284,8 @@ describe('App', () => {
     await userEvent.type(screen.getByLabelText(/^account$/i), 'prod.flowpatch@example.com')
     await userEvent.type(screen.getByLabelText(/^password$/i), 'Prod123!')
     await userEvent.type(screen.getByLabelText(/simulator marker/i), 'iPhone 16')
+    await userEvent.type(screen.getByLabelText(/in use by/i), 'QA Team')
+    await userEvent.type(screen.getByLabelText(/bank id/i), 'bankid-999')
     await userEvent.click(screen.getByRole('button', { name: /create account/i }))
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith(
@@ -289,7 +297,9 @@ describe('App', () => {
           account: 'prod.flowpatch@example.com',
           password: 'Prod123!',
           note: '',
-          simulator: 'iPhone 16'
+          simulator: 'iPhone 16',
+          usedBy: 'QA Team',
+          bankId: 'bankid-999'
         })
       })
     ))

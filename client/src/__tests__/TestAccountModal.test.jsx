@@ -8,7 +8,9 @@ const baseTestAccount = {
   account: 'qa.flowpatch@example.com',
   password: 'Secret123!',
   note: 'Use for smoke tests',
-  simulator: 'iPhone 16 Pro'
+  simulator: 'iPhone 16 Pro',
+  usedBy: 'Hans',
+  bankId: 'bankid-001'
 }
 
 describe('TestAccountModal', () => {
@@ -44,7 +46,7 @@ describe('TestAccountModal', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('submits env, credentials, optional note, and simulator marker', async () => {
+  it('submits env, credentials, optional note, simulator marker, owner, and bank id', async () => {
     const onConfirm = vi.fn()
 
     render(
@@ -60,6 +62,8 @@ describe('TestAccountModal', () => {
     await userEvent.type(screen.getByLabelText(/^account$/i), 'qa.flowpatch@example.com')
     await userEvent.type(screen.getByLabelText(/^password$/i), 'Secret123!')
     await userEvent.type(screen.getByLabelText(/simulator marker/i), 'iPhone 16 Pro')
+    await userEvent.type(screen.getByLabelText(/in use by/i), 'Hans')
+    await userEvent.type(screen.getByLabelText(/bank id/i), 'bankid-001')
     await userEvent.click(screen.getByRole('button', { name: /create account/i }))
 
     expect(onConfirm).toHaveBeenCalledWith({
@@ -67,7 +71,9 @@ describe('TestAccountModal', () => {
       account: 'qa.flowpatch@example.com',
       password: 'Secret123!',
       note: '',
-      simulator: 'iPhone 16 Pro'
+      simulator: 'iPhone 16 Pro',
+      usedBy: 'Hans',
+      bankId: 'bankid-001'
     })
   })
 

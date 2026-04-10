@@ -61,7 +61,9 @@ function getSearchHaystack(testAccount) {
     testAccount.account,
     testAccount.password,
     testAccount.note,
-    testAccount.simulator
+    testAccount.simulator,
+    testAccount.usedBy,
+    testAccount.bankId
   ]
     .join('\n')
     .toLowerCase()
@@ -119,6 +121,28 @@ function TestAccountRow({ testAccount, onEdit, onDelete, onCopy }) {
           <CopyButton onClick={() => onCopy(testAccount.account, `Copied account for ${testAccount.env}.`)}>
             Copy Account
           </CopyButton>
+        </div>
+        <div
+          data-testid={`test-account-meta-${testAccount.id}`}
+          className="mb-2 flex flex-wrap items-center gap-2"
+        >
+          {testAccount.usedBy ? (
+            <div className="inline-flex rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-medium text-cyan-700">
+              {testAccount.usedBy}
+            </div>
+          ) : (
+            <div className="text-[11px] text-slate-400">Unassigned</div>
+          )}
+          {testAccount.bankId ? (
+            <div className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-1 text-[11px] font-medium text-violet-700">
+              <span className="font-mono">{testAccount.bankId}</span>
+              <CopyButton onClick={() => onCopy(testAccount.bankId, `Copied bank ID for ${testAccount.account}.`)}>
+                Copy Bank ID
+              </CopyButton>
+            </div>
+          ) : (
+            <div className="text-[11px] text-slate-400">No bank ID</div>
+          )}
         </div>
         <div className="text-[11px] text-slate-400">
           Updated {formatUpdatedAt(testAccount.updatedAt ?? testAccount.createdAt)}
@@ -242,7 +266,7 @@ export default function TestAccountPanel({ testAccounts, onAdd, onEdit, onDelete
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               value={filterQuery}
               onChange={event => setFilterQuery(event.target.value)}
-              placeholder="Filter account, password, simulator, note..."
+              placeholder="Filter account, password, simulator, user, bank ID, note..."
             />
           </div>
 

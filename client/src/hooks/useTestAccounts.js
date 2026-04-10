@@ -16,7 +16,9 @@ function normalizeTestAccount(testAccount) {
     account: normalizeRequiredText(testAccount?.account),
     password: normalizeRequiredText(testAccount?.password),
     note: normalizeRequiredText(testAccount?.note),
-    simulator: normalizeOptionalText(testAccount?.simulator)
+    simulator: normalizeOptionalText(testAccount?.simulator),
+    usedBy: normalizeOptionalText(testAccount?.usedBy),
+    bankId: normalizeOptionalText(testAccount?.bankId)
   }
 }
 

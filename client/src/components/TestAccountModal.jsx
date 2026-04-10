@@ -6,7 +6,9 @@ function buildInitialState(testAccount) {
     account: testAccount?.account ?? '',
     password: testAccount?.password ?? '',
     note: testAccount?.note ?? '',
-    simulator: testAccount?.simulator ?? ''
+    simulator: testAccount?.simulator ?? '',
+    usedBy: testAccount?.usedBy ?? '',
+    bankId: testAccount?.bankId ?? ''
   }
 }
 
@@ -41,10 +43,12 @@ export default function TestAccountModal({ mode = 'create', initialTestAccount, 
     const password = form.password.trim()
     const note = form.note.trim()
     const simulator = form.simulator.trim()
+    const usedBy = form.usedBy.trim()
+    const bankId = form.bankId.trim()
 
     if (!env || !account || !password) return
 
-    onConfirm({ env, account, password, note, simulator })
+    onConfirm({ env, account, password, note, simulator, usedBy, bankId })
   }
 
   return (
@@ -118,6 +122,38 @@ export default function TestAccountModal({ mode = 'create', initialTestAccount, 
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Mark which simulator is currently logged into this account.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="test-account-used-by" className="mb-1 block text-xs font-medium text-gray-500">
+                  In Use By <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <input
+                  id="test-account-used-by"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={form.usedBy}
+                  onChange={event => setForm(current => ({ ...current, usedBy: event.target.value }))}
+                  placeholder="Hans / QA team / nobody"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Track who is currently using or holding this shared account.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="test-account-bank-id" className="mb-1 block text-xs font-medium text-gray-500">
+                  Bank ID <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <input
+                  id="test-account-bank-id"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  value={form.bankId}
+                  onChange={event => setForm(current => ({ ...current, bankId: event.target.value }))}
+                  placeholder="bankid-123456"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Optional bank identifier for this account. It will be copyable from the list.
                 </p>
               </div>
 

@@ -10,6 +10,8 @@ const mockTestAccounts = [
     password: 'Secret123!',
     note: 'Use for smoke tests',
     simulator: 'iPhone 16 Pro',
+    usedBy: 'Hans',
+    bankId: 'bankid-001',
     createdAt: '2026-04-09T10:00:00Z',
     updatedAt: '2026-04-09T10:00:00Z'
   }
@@ -32,6 +34,8 @@ describe('useTestAccounts', () => {
     expect(result.current.testAccounts[0].env).toBe('staging')
     expect(result.current.testAccounts[0].account).toBe('qa.flowpatch@example.com')
     expect(result.current.testAccounts[0].simulator).toBe('iPhone 16 Pro')
+    expect(result.current.testAccounts[0].usedBy).toBe('Hans')
+    expect(result.current.testAccounts[0].bankId).toBe('bankid-001')
   })
 
   it('addTestAccount posts and appends the returned account', async () => {
@@ -48,7 +52,9 @@ describe('useTestAccounts', () => {
         account: 'qa.flowpatch@example.com',
         password: 'Secret123!',
         note: 'Use for smoke tests',
-        simulator: 'iPhone 16 Pro'
+        simulator: 'iPhone 16 Pro',
+        usedBy: 'Hans',
+        bankId: 'bankid-001'
       })
     })
 
@@ -62,7 +68,9 @@ describe('useTestAccounts', () => {
       env: 'prod',
       password: 'Updated123!',
       note: 'Prod verification account',
-      simulator: ''
+      simulator: '',
+      usedBy: '',
+      bankId: ''
     }
 
     global.fetch
@@ -77,7 +85,9 @@ describe('useTestAccounts', () => {
         env: 'prod',
         password: 'Updated123!',
         note: 'Prod verification account',
-        simulator: ''
+        simulator: '',
+        usedBy: '',
+        bankId: ''
       })
     })
 
@@ -85,6 +95,8 @@ describe('useTestAccounts', () => {
     expect(result.current.testAccounts[0].password).toBe('Updated123!')
     expect(result.current.testAccounts[0].note).toBe('Prod verification account')
     expect(result.current.testAccounts[0].simulator).toBe('')
+    expect(result.current.testAccounts[0].usedBy).toBe('')
+    expect(result.current.testAccounts[0].bankId).toBe('')
   })
 
   it('deleteTestAccount removes the account from state', async () => {

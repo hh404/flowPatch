@@ -69,7 +69,9 @@ try {
       account: 'qa.flowpatch@example.com',
       password: 'Secret123!',
       note: 'Use for smoke tests',
-      simulator: 'iPhone 16 Pro'
+      simulator: 'iPhone 16 Pro',
+      usedBy: 'Hans',
+      bankId: 'bankid-001'
     })
 
     assert.strictEqual(status, 201, 'POST returns 201')
@@ -79,6 +81,8 @@ try {
     assert.strictEqual(body.password, 'Secret123!', 'POST password')
     assert.strictEqual(body.note, 'Use for smoke tests', 'POST note')
     assert.strictEqual(body.simulator, 'iPhone 16 Pro', 'POST simulator')
+    assert.strictEqual(body.usedBy, 'Hans', 'POST usedBy')
+    assert.strictEqual(body.bankId, 'bankid-001', 'POST bankId')
     createdId = body.id
   }
 
@@ -109,7 +113,9 @@ try {
       env: 'prod',
       password: 'Updated123!',
       note: '',
-      simulator: ''
+      simulator: '',
+      usedBy: '',
+      bankId: ''
     })
 
     assert.strictEqual(status, 200, 'PATCH returns 200')
@@ -117,6 +123,8 @@ try {
     assert.strictEqual(body.password, 'Updated123!', 'PATCH updates password')
     assert.strictEqual(body.note, '', 'PATCH allows clearing note')
     assert.strictEqual(body.simulator, '', 'PATCH clears simulator')
+    assert.strictEqual(body.usedBy, '', 'PATCH clears usedBy')
+    assert.strictEqual(body.bankId, '', 'PATCH clears bankId')
   }
 
   {

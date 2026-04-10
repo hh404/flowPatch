@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { readTestAccounts, writeTestAccounts } from '../testAccountStore.js'
 
 const router = Router()
-const ALLOWED_FIELDS = ['env', 'account', 'password', 'note', 'simulator']
+const ALLOWED_FIELDS = ['env', 'account', 'password', 'note', 'simulator', 'usedBy', 'bankId']
 
 function normalizeRequiredText(value) {
   return value?.trim() ?? ''
@@ -20,7 +20,9 @@ function normalizeTestAccount(testAccount) {
     account: normalizeRequiredText(testAccount.account),
     password: normalizeRequiredText(testAccount.password),
     note: normalizeOptionalText(testAccount.note),
-    simulator: normalizeOptionalText(testAccount.simulator)
+    simulator: normalizeOptionalText(testAccount.simulator),
+    usedBy: normalizeOptionalText(testAccount.usedBy),
+    bankId: normalizeOptionalText(testAccount.bankId)
   }
 }
 
@@ -40,6 +42,8 @@ router.post('/', async (req, res) => {
     const password = normalizeRequiredText(req.body.password)
     const note = normalizeOptionalText(req.body.note)
     const simulator = normalizeOptionalText(req.body.simulator)
+    const usedBy = normalizeOptionalText(req.body.usedBy)
+    const bankId = normalizeOptionalText(req.body.bankId)
 
     if (!env || !account || !password) {
       return res.status(400).json({ error: 'env, account, and password are required' })
@@ -53,6 +57,8 @@ router.post('/', async (req, res) => {
       password,
       note,
       simulator,
+      usedBy,
+      bankId,
       createdAt: now,
       updatedAt: now
     }
@@ -97,6 +103,14 @@ router.patch('/:id', async (req, res) => {
 
     if (updates.simulator !== undefined) {
       updates.simulator = normalizeOptionalText(updates.simulator)
+    }
+
+    if (updates.usedBy !== undefined) {
+      updates.usedBy = normalizeOptionalText(updates.usedBy)
+    }
+
+    if (updates.bankId !== undefined) {
+      updates.bankId = normalizeOptionalText(updates.bankId)
     }
 
     testAccounts[index] = {
