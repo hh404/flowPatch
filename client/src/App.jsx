@@ -32,7 +32,8 @@ const PAGES = {
   board: 'board',
   stories: 'stories',
   accounts: 'accounts',
-  replies: 'replies'
+  replies: 'replies',
+  qualityGuide: 'quality-guide'
 }
 
 function getPageFromHash() {
@@ -40,6 +41,7 @@ function getPageFromHash() {
   if (hash === PAGES.stories) return PAGES.stories
   if (hash === PAGES.accounts) return PAGES.accounts
   if (hash === PAGES.replies) return PAGES.replies
+  if (hash === PAGES.qualityGuide) return PAGES.qualityGuide
   return PAGES.board
 }
 
@@ -47,6 +49,7 @@ function getPageHash(page) {
   if (page === PAGES.stories) return '#stories'
   if (page === PAGES.accounts) return '#accounts'
   if (page === PAGES.replies) return '#replies'
+  if (page === PAGES.qualityGuide) return '#quality-guide'
   return '#board'
 }
 
@@ -55,7 +58,8 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
     { key: PAGES.board, label: 'Task Board' },
     { key: PAGES.stories, label: 'Story List' },
     { key: PAGES.accounts, label: 'Test Accounts' },
-    { key: PAGES.replies, label: 'Reply Library' }
+    { key: PAGES.replies, label: 'Reply Library' },
+    { key: PAGES.qualityGuide, label: 'Type Guide' }
   ]
   const currentPageLabel = currentPage === PAGES.stories
     ? 'Story List'
@@ -63,7 +67,9 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
       ? 'Test Accounts'
       : currentPage === PAGES.replies
         ? 'Reply Library'
-      : 'Task Board'
+        : currentPage === PAGES.qualityGuide
+          ? 'Type Guide'
+          : 'Task Board'
 
   return (
     <header className="border-b border-slate-800 bg-slate-900 px-4 py-4 text-white shadow">
@@ -115,6 +121,85 @@ function ShellHeader({ currentPage, onNavigate, summary }) {
         </div>
       </div>
     </header>
+  )
+}
+
+function TypeGuidePage({ currentPage, onNavigate }) {
+  const rows = [
+    {
+      type: 'Repo',
+      quality: '🟠 传说 Legendary',
+      color: '橙色 Orange',
+      semantics: '核心 / source / root',
+      memory: '传说装备，不能丢，最根本'
+    },
+    {
+      type: 'Pipeline',
+      quality: '🟣 史诗 Epic',
+      color: '紫色 Purple',
+      semantics: '系统 / CI / 自动化',
+      memory: '史诗级系统，跑起来才有输出'
+    },
+    {
+      type: 'Story',
+      quality: '🔵 精良 Rare',
+      color: '蓝色 Blue',
+      semantics: '业务 / 需求',
+      memory: '主力装备，日常核心工作'
+    },
+    {
+      type: 'PR',
+      quality: '🟢 优秀 Uncommon',
+      color: '绿色 Green',
+      semantics: '代码 / merge / change',
+      memory: '绿装也是装备，得认真对待'
+    },
+    {
+      type: 'Query',
+      quality: '⚪ 普通 Common',
+      color: '灰色 Grey',
+      semantics: '查询 / 临时 / debug',
+      memory: '白装，用完就丢，别恋战'
+    }
+  ]
+
+  return (
+    <div className="flex h-screen flex-col bg-slate-100 font-sans text-slate-900">
+      <ShellHeader
+        currentPage={currentPage}
+        onNavigate={onNavigate}
+        summary={[{ label: 'Type Mapping Guide' }]}
+      />
+
+      <main className="flex-1 overflow-auto p-4">
+        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">类型</th>
+                  <th className="px-4 py-3">WoW 品质</th>
+                  <th className="px-4 py-3">颜色</th>
+                  <th className="px-4 py-3">语义</th>
+                  <th className="px-4 py-3">记忆方式</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => (
+                  <tr key={row.type} className="border-t border-slate-100">
+                    <td className="px-4 py-3 font-semibold text-slate-900">{row.type}</td>
+                    <td className="px-4 py-3 text-slate-700">{row.quality}</td>
+                    <td className="px-4 py-3 text-slate-700">{row.color}</td>
+                    <td className="px-4 py-3 text-slate-700">{row.semantics}</td>
+                    <td className="px-4 py-3 text-slate-700">{row.memory}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
   )
 }
 
@@ -632,6 +717,10 @@ export default function App() {
 
   if (currentPage === PAGES.replies) {
     return <ReplyTemplatesPage currentPage={currentPage} onNavigate={navigateTo} />
+  }
+
+  if (currentPage === PAGES.qualityGuide) {
+    return <TypeGuidePage currentPage={currentPage} onNavigate={navigateTo} />
   }
 
   return <BoardPage currentPage={currentPage} onNavigate={navigateTo} />

@@ -5,15 +5,22 @@
     "link": "baidu.com",
     "status": "Done",
     "createdAt": "2026-04-05T08:17:44.908Z",
-    "updatedAt": "2026-04-05T08:36:08.494Z"
+    "updatedAt": "2026-04-08T12:31:12.496Z",
+    "mvp": "Current MVP",
+    "branch": "ABC23",
+    "folder": "",
+    "description": ""
   },
   {
     "id": "4a2a1f60-4679-4e59-b00e-e1e34313be33",
     "title": "33510",
-    "link": "google.com",
-    "status": "Planned",
+    "link": "https://translate.google.com/?sl=en&tl=zh-CN&text=hang%20up&op=translate",
+    "status": "New",
     "createdAt": "2026-04-05T08:18:02.434Z",
-    "updatedAt": "2026-04-05T08:18:02.434Z"
+    "updatedAt": "2026-04-07T13:56:31.319Z",
+    "mvp": "Current MVP",
+    "folder": "",
+    "description": ""
   },
   {
     "mvp": "mvp2",
