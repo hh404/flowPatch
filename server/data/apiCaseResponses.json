@@ -1,0 +1,35 @@
+{
+  "auth-login-success": {
+    "code": "0",
+    "message": "success",
+    "data": {
+      "accessToken": "jwt-token-sample",
+      "refreshToken": "refresh-token-sample",
+      "user": {
+        "id": "user-1001",
+        "name": "QA User"
+      }
+    }
+  },
+  "auth-login-invalid-password": {
+    "code": "AUTH_401",
+    "message": "invalid username or password",
+    "data": null
+  },
+  "transfer-create-success": {
+    "code": "0",
+    "message": "success",
+    "data": {
+      "transferId": "TRX-20260426-001",
+      "status": "PENDING_REVIEW"
+    }
+  },
+  "transfer-create-insufficient-balance": {
+    "code": "TRF_422",
+    "message": "insufficient balance",
+    "data": {
+      "availableBalance": 20,
+      "requestedAmount": 999999
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "interfaces": [
+    {
+      "id": "auth-login",
+      "name": "Auth Login",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "cases": [
+        {
+          "id": "auth-login-success",
+          "name": "Login Success",
+          "description": "Valid account and password should return access token and user profile."
+        },
+        {
+          "id": "auth-login-invalid-password",
+          "name": "Invalid Password",
+          "description": "Wrong password should return unauthorized error message."
+        }
+      ]
+    },
+    {
+      "id": "transfer-create",
+      "name": "Create Transfer",
+      "method": "POST",
+      "path": "/api/v1/transfers",
+      "cases": [
+        {
+          "id": "transfer-create-success",
+          "name": "Transfer Success",
+          "description": "Sufficient balance and valid beneficiary should create transfer order."
+        },
+        {
+          "id": "transfer-create-insufficient-balance",
+          "name": "Insufficient Balance",
+          "description": "Transfer amount exceeds balance and API returns validation error."
+        }
+      ]
+    }
+  ]
+}

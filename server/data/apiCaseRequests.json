@@ -1,0 +1,26 @@
+{
+  "auth-login-success": {
+    "username": "qa.user@example.com",
+    "password": "P@ssw0rd!",
+    "channel": "ios"
+  },
+  "auth-login-invalid-password": {
+    "username": "qa.user@example.com",
+    "password": "bad-password",
+    "channel": "ios"
+  },
+  "transfer-create-success": {
+    "fromAccount": "SGD-001",
+    "toAccount": "SGD-889",
+    "amount": 100,
+    "currency": "SGD",
+    "remark": "rent"
+  },
+  "transfer-create-insufficient-balance": {
+    "fromAccount": "SGD-LOW",
+    "toAccount": "SGD-889",
+    "amount": 999999,
+    "currency": "SGD",
+    "remark": "large payment"
+  }
+}
