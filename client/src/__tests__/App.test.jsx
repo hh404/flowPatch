@@ -59,6 +59,75 @@ const mockReplyTemplates = {
   ]
 }
 
+const mockPackageReleases = [
+  {
+    id: 'package-1',
+    release: {
+      market: 'SG',
+      project: 'WISE',
+      stage: 'SIT',
+      mvp: 'MVP1',
+      appVersion: '23.0.0',
+      buildNumber: '12345',
+      branch: 'release/mvp1',
+      packageDate: '2026-04-13T10:00',
+      qaOwner: 'QA',
+      testFlightScreenshot: 'testflight.png',
+      stories: ['ADO#1001 Story tracker']
+    },
+    checklist: { branchCorrect: true, ticketScope: true },
+    notes: {
+      teamsMessage: 'Teams message',
+      buildStartMessage: 'Starting build with version 23.0.0.',
+      adoComment: 'ADO comment',
+      emailSubject: '[SG][WISE] SIT',
+      emailBody: 'Email body',
+      confluenceRow: '| 2026-04-13 | 12345 |'
+    },
+    qaConfirmed: false,
+    createdAt: '2026-04-13T10:00:00.000Z',
+    updatedAt: '2026-04-13T10:00:00.000Z'
+  }
+]
+
+const mockApiCases = [
+  {
+    id: 'auth-login',
+    name: 'Auth Login',
+    method: 'POST',
+    path: '/api/v1/auth/login',
+    cases: [
+      {
+        id: 'INFT.login.device.faceid.risk',
+        name: 'INFT FaceID Risk',
+        description: 'FaceID login under risk policy branch.',
+        bauVersion: '20260404122322',
+        currentVersion: '20260407153010',
+        bauRequest: { username: 'qa.user@example.com', password: 'P@ssw0rd!' },
+        bauResponse: { code: '0', message: 'success-bau' },
+        request: { username: 'qa.user@example.com', password: 'P@ssw0rd!', deviceTrust: 'unknown' },
+        response: { code: '0', message: 'success-current' },
+        versions: [
+          {
+            timestamp: '20260407153010',
+            request: { username: 'qa.user@example.com', password: 'P@ssw0rd!', deviceTrust: 'unknown' },
+            response: { code: '0', message: 'success-current' },
+            isBau: false,
+            isCurrent: true
+          },
+          {
+            timestamp: '20260404122322',
+            request: { username: 'qa.user@example.com', password: 'P@ssw0rd!' },
+            response: { code: '0', message: 'success-bau' },
+            isBau: true,
+            isCurrent: false
+          }
+        ]
+      }
+    ]
+  }
+]
+
 function jsonResponse(body) {
   return Promise.resolve({ ok: true, json: async () => body })
 }
@@ -75,6 +144,9 @@ beforeEach(() => {
     if (url === '/api/stories' && method === 'GET') return jsonResponse(mockStories)
     if (url === '/api/test-accounts' && method === 'GET') return jsonResponse(mockTestAccounts)
     if (url === '/api/reply-templates' && method === 'GET') return jsonResponse(mockReplyTemplates)
+    if (url === '/api/package-releases' && method === 'GET') return jsonResponse(mockPackageReleases)
+    if (url === '/api/api-cases/config' && method === 'GET') return jsonResponse({ rootDir: '/mock/api-cases' })
+    if (url === '/api/api-cases' && method === 'GET') return jsonResponse(mockApiCases)
     if (url === '/api/tasks' && method === 'POST') return jsonResponse(mockTasks[0])
     if (url === '/api/tasks/1' && method === 'PATCH') return jsonResponse({ ...mockTasks[0], status: 'doing' })
     if (url === '/api/stories' && method === 'POST') {
@@ -168,6 +240,38 @@ describe('App', () => {
     expect(screen.getByText('Release timeline explanation')).toBeInTheDocument()
     expect(screen.getByText('The release timeline has already been shared.')).toBeInTheDocument()
     expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
+  })
+
+  it('navigates to the package SOP page and renders release records', async () => {
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Wait for pipeline')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'Package SOP' }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: /package sop/i })).toBeInTheDocument())
+
+    expect(screen.getByText('Build 12345')).toBeInTheDocument()
+    expect(screen.getAllByText(/ADO#1001 Story tracker/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/"appVersion": "23.0.0"/)).toBeInTheDocument()
+    expect(screen.getByText(/"buildNumber": "12345"/)).toBeInTheDocument()
+    expect(screen.queryByText('Wait for pipeline')).not.toBeInTheDocument()
+  })
+
+  it('navigates to the API cases page and renders request response payloads', async () => {
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Wait for pipeline')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'API Cases' }))
+    await waitFor(() => expect(screen.getByText('Auth Login')).toBeInTheDocument())
+
+    expect(screen.getByText('/api/v1/auth/login')).toBeInTheDocument()
+    expect(screen.getByText('INFT FaceID Risk')).toBeInTheDocument()
+    expect(screen.getByText(/"deviceTrust": "unknown"/)).toBeInTheDocument()
+    expect(screen.getByText(/"message": "success-current"/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'BAU' }))
+    expect(screen.getByText(/"message": "success-bau"/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'All Versions' }))
+    expect(screen.getByText('20260407153010')).toBeInTheDocument()
+    expect(screen.getByText('20260404122322')).toBeInTheDocument()
   })
 
   it('adds a task via QuickInput', async () => {

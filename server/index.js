@@ -7,6 +7,8 @@ import mvpRoutes from './routes/mvps.js'
 import storyRoutes from './routes/stories.js'
 import testAccountRoutes from './routes/testAccounts.js'
 import replyTemplateRoutes from './routes/replyTemplates.js'
+import packageReleaseRoutes from './routes/packageReleases.js'
+import apiCaseRoutes from './routes/apiCases.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT ?? 47291
@@ -22,6 +24,8 @@ export function createApp() {
   app.use('/api/stories', storyRoutes)
   app.use('/api/test-accounts', testAccountRoutes)
   app.use('/api/reply-templates', replyTemplateRoutes)
+  app.use('/api/package-releases', packageReleaseRoutes)
+  app.use('/api/api-cases', apiCaseRoutes)
 
   // Serve built frontend in production
   if (process.env.NODE_ENV === 'production') {

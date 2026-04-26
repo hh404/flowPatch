@@ -3,6 +3,8 @@ const MVPS_BASE = '/api/mvps'
 const STORIES_BASE = '/api/stories'
 const TEST_ACCOUNTS_BASE = '/api/test-accounts'
 const REPLY_TEMPLATES_BASE = '/api/reply-templates'
+const PACKAGE_RELEASES_BASE = '/api/package-releases'
+const API_CASES_BASE = '/api/api-cases'
 
 async function getErrorMessage(res, fallback) {
   try {
@@ -164,6 +166,37 @@ export async function removeTestAccount(id) {
   if (!res.ok) throw new Error('delete test account failed')
 }
 
+export async function fetchPackageReleases() {
+  const res = await fetch(PACKAGE_RELEASES_BASE)
+  if (!res.ok) throw new Error('fetch package releases failed')
+  return res.json()
+}
+
+export async function createPackageRelease(data) {
+  const res = await fetch(PACKAGE_RELEASES_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'create package release failed'))
+  return res.json()
+}
+
+export async function patchPackageRelease(id, data) {
+  const res = await fetch(`${PACKAGE_RELEASES_BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'patch package release failed'))
+  return res.json()
+}
+
+export async function removePackageRelease(id) {
+  const res = await fetch(`${PACKAGE_RELEASES_BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'delete package release failed'))
+}
+
 export async function fetchReplyTemplates() {
   const res = await fetch(REPLY_TEMPLATES_BASE)
   if (!res.ok) throw new Error('fetch reply templates failed')
@@ -229,4 +262,38 @@ export async function removeReplyTemplateReply(categoryId, replyId) {
   )
 
   if (!res.ok) throw new Error(await getErrorMessage(res, 'delete reply template reply failed'))
+}
+
+export async function fetchApiCases() {
+  const res = await fetch(API_CASES_BASE)
+  if (!res.ok) throw new Error('fetch api cases failed')
+  return res.json()
+}
+
+export async function fetchApiCasesConfig() {
+  const res = await fetch(`${API_CASES_BASE}/config`)
+  if (!res.ok) throw new Error('fetch api cases config failed')
+  return res.json()
+}
+
+export async function updateApiCasesConfig(rootDir) {
+  const res = await fetch(`${API_CASES_BASE}/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rootDir })
+  })
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'update api cases config failed'))
+  return res.json()
+}
+
+export async function selectApiCasesRoot(currentPath = '') {
+  const res = await fetch(`${API_CASES_BASE}/select-root`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPath })
+  })
+
+  if (!res.ok) throw new Error(await getErrorMessage(res, 'select api cases root failed'))
+  return res.json()
 }

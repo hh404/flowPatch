@@ -1,0 +1,14 @@
+{
+  "id": "transfer-create",
+  "name": "Transfer Create",
+  "method": "POST",
+  "path": "/api/v1/transfers",
+  "cases": {
+    "INFT.transfer.insufficient.balance": {
+      "name": "INFT Insufficient Balance",
+      "desc": "Transfer amount exceeds balance should fail.",
+      "bau": "20260404122322",
+      "current": "20260407153010"
+    }
+  }
+}

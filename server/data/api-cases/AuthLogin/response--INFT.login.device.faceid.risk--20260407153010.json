@@ -1,0 +1,8 @@
+{
+  "code": "0",
+  "message": "success",
+  "data": {
+    "accessToken": "jwt-token-sample-v2",
+    "riskLevel": "MEDIUM"
+  }
+}

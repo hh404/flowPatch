@@ -1,0 +1,7 @@
+{
+  "code": "TRF_422",
+  "message": "insufficient balance",
+  "data": {
+    "availableBalance": 20
+  }
+}
